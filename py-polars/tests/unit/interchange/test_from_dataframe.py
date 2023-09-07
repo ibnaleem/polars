@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -85,41 +83,6 @@ def test_from_dataframe_invalid_type() -> None:
     df = [[1, 2], [3, 4]]
     with pytest.raises(TypeError):
         pl.from_dataframe(df)  # type: ignore[arg-type]
-
-
-def test_from_dataframe_pyarrow_required(monkeypatch: Any) -> None:
-    monkeypatch.setattr(pl.interchange.from_dataframe, "_PYARROW_AVAILABLE", False)
-
-    df = pl.DataFrame({"a": [1, 2]})
-    with pytest.raises(ImportError, match="pyarrow"):
-        pl.from_dataframe(df.to_pandas())
-
-    # 'Converting' from a Polars dataframe does not hit this requirement
-    result = pl.from_dataframe(df)
-    assert_frame_equal(result, df)
-
-
-def test_from_dataframe_pyarrow_min_version(monkeypatch: Any) -> None:
-    dfi = pl.DataFrame({"a": [1, 2]}).to_arrow().__dataframe__()
-
-    monkeypatch.setattr(
-        pl.interchange.from_dataframe.pa,  # type: ignore[attr-defined]
-        "__version__",
-        "10.0.0",
-    )
-
-    with pytest.raises(ImportError, match="pyarrow"):
-        pl.from_dataframe(dfi)
-
-
-@pytest.mark.parametrize("dtype", [pl.Date, pl.Time, pl.Duration])
-def test_from_dataframe_data_type_not_implemented_by_arrow(
-    dtype: pl.PolarsDataType,
-) -> None:
-    df = pl.Series([0], dtype=dtype).to_frame().to_arrow()
-    dfi = df.__dataframe__()
-    with pytest.raises(ValueError, match="not supported"):
-        pl.from_dataframe(dfi)
 
 
 def test_from_dataframe_empty_arrow_interchange_object() -> None:
