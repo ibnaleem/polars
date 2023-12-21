@@ -55,7 +55,6 @@ class ListNameSpace:
         │ true  │
         │ null  │
         └───────┘
-
         """
 
     def any(self) -> Expr:
@@ -81,7 +80,6 @@ class ListNameSpace:
         │ false │
         │ null  │
         └───────┘
-
         """
 
     def len(self) -> Series:
@@ -105,7 +103,6 @@ class ListNameSpace:
             3
             1
         ]
-
         """
 
     def drop_nulls(self) -> Series:
@@ -125,7 +122,6 @@ class ListNameSpace:
             []
             [3, 4]
         ]
-
         """
 
     def sample(
@@ -165,7 +161,6 @@ class ListNameSpace:
             [2, 1]
             [5]
         ]
-
         """
 
     def sum(self) -> Series:
@@ -206,7 +201,6 @@ class ListNameSpace:
                 [3, 2, 1]
                 [9, 2, 1]
         ]
-
         """
 
     def reverse(self) -> Series:
@@ -220,7 +214,6 @@ class ListNameSpace:
         ----------
         maintain_order
             Maintain order of data. This requires more work.
-
         """
 
     def concat(self, other: list[Series] | Series | list[Any]) -> Series:
@@ -231,7 +224,6 @@ class ListNameSpace:
         ----------
         other
             Columns to concat into a List Series
-
         """
 
     def get(self, index: int | Series | list[int]) -> Series:
@@ -246,7 +238,6 @@ class ListNameSpace:
         ----------
         index
             Index to return per sublist
-
         """
 
     def gather(
@@ -301,7 +292,6 @@ class ListNameSpace:
             "foo-bar"
             "hello-world"
         ]
-
         """
 
     def first(self) -> Series:
@@ -323,7 +313,6 @@ class ListNameSpace:
         -------
         Series
             Series of data type :class:`Boolean`.
-
         """
 
     def arg_min(self) -> Series:
@@ -335,7 +324,6 @@ class ListNameSpace:
         Series
             Series of data type :class:`UInt32` or :class:`UInt64`
             (depending on compilation).
-
         """
 
     def arg_max(self) -> Series:
@@ -347,7 +335,6 @@ class ListNameSpace:
         Series
             Series of data type :class:`UInt32` or :class:`UInt64`
             (depending on compilation).
-
         """
 
     def diff(self, n: int = 1, null_behavior: NullBehavior = "ignore") -> Series:
@@ -387,7 +374,6 @@ class ListNameSpace:
             [2, 2]
             [-9]
         ]
-
         """
 
     @deprecate_renamed_parameter("periods", "n", version="0.19.11")
@@ -428,7 +414,6 @@ class ListNameSpace:
                 [3, null, null]
                 [null, null]
         ]
-
         """
 
     def slice(self, offset: int | Expr, length: int | Expr | None = None) -> Series:
@@ -453,7 +438,6 @@ class ListNameSpace:
             [2, 3]
             [2, 1]
         ]
-
         """
 
     def head(self, n: int | Expr = 5) -> Series:
@@ -475,7 +459,6 @@ class ListNameSpace:
             [1, 2]
             [10, 2]
         ]
-
         """
 
     def tail(self, n: int | Expr = 5) -> Series:
@@ -497,7 +480,6 @@ class ListNameSpace:
             [3, 4]
             [2, 1]
         ]
-
         """
 
     def explode(self) -> Series:
@@ -527,7 +509,6 @@ class ListNameSpace:
             5
             6
         ]
-
         """
 
     def count_matches(
@@ -540,7 +521,6 @@ class ListNameSpace:
         ----------
         element
             An expression that produces a single value
-
         """
 
     def to_array(self, width: int) -> Series:
@@ -567,7 +547,6 @@ class ListNameSpace:
                 [1, 2]
                 [3, 4]
         ]
-
         """
 
     def to_struct(
@@ -626,7 +605,6 @@ class ListNameSpace:
         │ 0   ┆ 1   ┆ 2     │
         │ 0   ┆ 1   ┆ null  │
         └─────┴─────┴───────┘
-
         """
         s = wrap_s(self._s)
         return (
@@ -675,7 +653,6 @@ class ListNameSpace:
         │ 8   ┆ 5   ┆ [2.0, 1.0] │
         │ 3   ┆ 2   ┆ [2.0, 1.0] │
         └─────┴─────┴────────────┘
-
         """
 
     def set_union(self, other: Series) -> Series:
@@ -700,7 +677,6 @@ class ListNameSpace:
                 [null, 3, 4]
                 [5, 6, 7, 8]
         ]
-
         """  # noqa: W505
 
     def set_difference(self, other: Series) -> Series:
@@ -729,7 +705,6 @@ class ListNameSpace:
                 []
                 [5, 7]
         ]
-
         """  # noqa: W505
 
     def set_intersection(self, other: Series) -> Series:
@@ -754,7 +729,6 @@ class ListNameSpace:
                 [null, 3]
                 [6]
         ]
-
         """  # noqa: W505
 
     def set_symmetric_difference(self, other: Series) -> Series:
@@ -765,7 +739,6 @@ class ListNameSpace:
         ----------
         other
             Right hand side of the set operation.
-
         """  # noqa: W505
 
     @deprecate_renamed_function("count_matches", version="0.19.3")
@@ -782,7 +755,6 @@ class ListNameSpace:
         ----------
         element
             An expression that produces a single value
-
         """
 
     @deprecate_renamed_function("len", version="0.19.8")
@@ -792,7 +764,6 @@ class ListNameSpace:
 
         .. deprecated:: 0.19.8
             This method has been renamed to :func:`len`.
-
         """
 
     @deprecate_renamed_function("gather", version="0.19.14")

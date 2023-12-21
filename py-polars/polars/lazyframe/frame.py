@@ -272,7 +272,6 @@ class LazyFrame:
     │ 1   ┆ 2   ┆ 3   │
     │ 4   ┆ 5   ┆ 6   │
     └─────┴─────┴─────┘
-
     """
 
     _ldf: PyLazyFrame
@@ -354,7 +353,6 @@ class LazyFrame:
         See Also
         --------
         polars.io.scan_csv
-
         """
         dtype_list: list[tuple[str, PolarsDataType]] | None = None
         if dtypes is not None:
@@ -424,7 +422,6 @@ class LazyFrame:
         See Also
         --------
         polars.io.scan_parquet
-
         """
         if isinstance(source, list):
             sources = source
@@ -491,7 +488,6 @@ class LazyFrame:
         See Also
         --------
         polars.io.scan_ipc
-
         """
         if isinstance(source, (str, Path)):
             can_use_fsspec = True
@@ -545,7 +541,6 @@ class LazyFrame:
         See Also
         --------
         polars.io.scan_ndjson
-
         """
         if isinstance(source, (str, Path)):
             source = normalize_filepath(source)
@@ -617,7 +612,6 @@ class LazyFrame:
         ╞═════╡
         │ 6   │
         └─────┘
-
         """
         if isinstance(source, StringIO):
             source = BytesIO(source.getvalue().encode())
@@ -642,7 +636,6 @@ class LazyFrame:
         ... ).select("foo", "bar")
         >>> lf.columns
         ['foo', 'bar']
-
         """
         return self._ldf.columns()
 
@@ -666,7 +659,6 @@ class LazyFrame:
         ... )
         >>> lf.dtypes
         [Int64, Float64, Utf8]
-
         """
         return self._ldf.dtypes()
 
@@ -686,7 +678,6 @@ class LazyFrame:
         ... )
         >>> lf.schema
         OrderedDict({'foo': Int64, 'bar': Float64, 'ham': Utf8})
-
         """
         return OrderedDict(self._ldf.schema())
 
@@ -718,7 +709,6 @@ class LazyFrame:
         ... )
         >>> lf.width
         2
-
         """
         return self._ldf.width()
 
@@ -849,7 +839,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╡
         │ 6   │
         └─────┘
-
         """
         if isinstance(file, (str, Path)):
             file = normalize_filepath(file)
@@ -936,7 +925,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 3   ┆ 1   │
         │ 4   ┆ 2   │
         └─────┴─────┘
-
         """
         return function(self, *args, **kwargs)
 
@@ -1071,7 +1059,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         >>> lf.group_by("a", maintain_order=True).agg(pl.all().sum()).sort(
         ...     "a"
         ... ).show_graph()  # doctest: +SKIP
-
         """
         _ldf = self._ldf.optimization_toggle(
             type_coercion,
@@ -1140,7 +1127,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ...     .filter(pl.col("bar") == pl.col("foo"))
         ... )  # doctest: +ELLIPSIS
         <LazyFrame [2 cols, {"foo": Int64, "bar": Int64}] at ...>
-
         """
 
         def inspect(s: DataFrame) -> DataFrame:
@@ -1243,7 +1229,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ null ┆ 4.0 ┆ b   │
         │ 2    ┆ 5.0 ┆ c   │
         └──────┴─────┴─────┘
-
         """
         # Fast path for sorting by a single existing column
         if isinstance(by, str) and not more_by:
@@ -1336,7 +1321,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ a   ┆ 2   │
         │ c   ┆ 1   │
         └─────┴─────┘
-
         """
         by = parse_as_list_of_expressions(by)
         if isinstance(descending, bool):
@@ -1422,7 +1406,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ b   ┆ 1   │
         │ b   ┆ 2   │
         └─────┴─────┘
-
         """
         by = parse_as_list_of_expressions(by)
         if isinstance(descending, bool):
@@ -1516,7 +1499,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
          │ group_by_partitioned(a) ┆ 5     ┆ 470  │
          │ sort(a)                 ┆ 475   ┆ 1964 │
          └─────────────────────────┴───────┴──────┘)
-
         """
         if no_optimization:
             predicate_pushdown = False
@@ -1679,7 +1661,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ b   ┆ 11  ┆ 10  │
         │ c   ┆ 6   ┆ 1   │
         └─────┴─────┴─────┘
-
         """
         if no_optimization or _eager:
             predicate_pushdown = False
@@ -1933,7 +1914,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         --------
         >>> lf = pl.scan_csv("/path/to/my_larger_than_ram_file.csv")  # doctest: +SKIP
         >>> lf.sink_parquet("out.parquet")  # doctest: +SKIP
-
         """
         lf = self._set_sink_optimizations(
             type_coercion=type_coercion,
@@ -2003,7 +1983,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         --------
         >>> lf = pl.scan_csv("/path/to/my_larger_than_ram_file.csv")  # doctest: +SKIP
         >>> lf.sink_ipc("out.arrow")  # doctest: +SKIP
-
         """
         lf = self._set_sink_optimizations(
             type_coercion=type_coercion,
@@ -2127,7 +2106,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         --------
         >>> lf = pl.scan_csv("/path/to/my_larger_than_ram_file.csv")  # doctest: +SKIP
         >>> lf.sink_csv("out.csv")  # doctest: +SKIP
-
         """
         _check_arg_is_1byte("separator", separator, can_be_empty=False)
         _check_arg_is_1byte("quote_char", quote_char, can_be_empty=False)
@@ -2205,7 +2183,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         --------
         >>> lf = pl.scan_csv("/path/to/my_larger_than_ram_file.csv")  # doctest: +SKIP
         >>> lf.sink_json("out.json")  # doctest: +SKIP
-
         """
         lf = self._set_sink_optimizations(
             type_coercion=type_coercion,
@@ -2322,7 +2299,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ a   ┆ 1   ┆ 6   │
         │ b   ┆ 2   ┆ 5   │
         └─────┴─────┴─────┘
-
         """
         if no_optimization:
             predicate_pushdown = False
@@ -2366,7 +2342,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ... )
         >>> lf.lazy()  # doctest: +ELLIPSIS
         <LazyFrame [3 cols, {"a": Int64 … "c": Boolean}] at ...>
-
         """
         return self
 
@@ -2438,7 +2413,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 2   ┆ 7   ┆ 2021-03-04 │
         │ 3   ┆ 8   ┆ 2022-05-06 │
         └─────┴─────┴────────────┘
-
         """
         if not isinstance(dtypes, Mapping):
             return self._from_pyldf(self._ldf.cast_all(dtypes, strict))
@@ -2497,7 +2471,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ null ┆ null ┆ null │
         │ null ┆ null ┆ null │
         └──────┴──────┴──────┘
-
         """
         return pl.DataFrame(schema=self.schema).clear(n).lazy()
 
@@ -2523,7 +2496,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ... )
         >>> lf.clone()  # doctest: +ELLIPSIS
         <LazyFrame [3 cols, {"a": Int64 … "c": Boolean}] at ...>
-
         """
         return self._from_pyldf(self._ldf.clone())
 
@@ -2624,7 +2596,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 1   ┆ 6   ┆ a   │
         │ 3   ┆ 8   ┆ c   │
         └─────┴─────┴─────┘
-
         """
         all_predicates: list[pl.Expr] = []
         boolean_masks = []
@@ -2807,7 +2778,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ {0,1}     │
         │ {1,0}     │
         └───────────┘
-
         """
         structify = bool(int(os.environ.get("POLARS_AUTO_STRUCTIFY", 0)))
 
@@ -2838,7 +2808,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         See Also
         --------
         select
-
         """
         structify = bool(int(os.environ.get("POLARS_AUTO_STRUCTIFY", 0)))
 
@@ -2939,7 +2908,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ b   ┆ 1   ┆ 3.0 │
         │ c   ┆ 1   ┆ 1.0 │
         └─────┴─────┴─────┘
-
         """
         exprs = parse_as_list_of_expressions(by, *more_by)
         lgb = self._ldf.group_by(exprs, maintain_order)
@@ -3078,7 +3046,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 2020-01-03 19:45:32 ┆ 11    ┆ 2     ┆ 9     │
         │ 2020-01-08 23:16:43 ┆ 1     ┆ 1     ┆ 1     │
         └─────────────────────┴───────┴───────┴───────┘
-
         """
         period = deprecate_saturating(period)
         offset = deprecate_saturating(offset)
@@ -3413,7 +3380,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 2               ┆ 5               ┆ 2   ┆ ["B", "B", "C"] │
         │ 4               ┆ 7               ┆ 4   ┆ ["C"]           │
         └─────────────────┴─────────────────┴─────┴─────────────────┘
-
         """  # noqa: W505
         every = deprecate_saturating(every)
         period = deprecate_saturating(period)
@@ -3585,7 +3551,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 2018-05-12 00:00:00 ┆ 83.12      ┆ 4566 │
         │ 2019-05-12 00:00:00 ┆ 83.52      ┆ 4696 │
         └─────────────────────┴────────────┴──────┘
-
         """
         tolerance = deprecate_saturating(tolerance)
         if not isinstance(other, LazyFrame):
@@ -3788,7 +3753,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╪═════╡
         │ 3   ┆ 8.0 ┆ c   │
         └─────┴─────┴─────┘
-
         """
         if not isinstance(other, LazyFrame):
             raise TypeError(
@@ -3979,7 +3943,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 3   ┆ 10.0 ┆ {1,6.0}     │
         │ 4   ┆ 13.0 ┆ {1,3.0}     │
         └─────┴──────┴─────────────┘
-
         """
         structify = bool(int(os.environ.get("POLARS_AUTO_STRUCTIFY", 0)))
 
@@ -4019,7 +3982,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         See Also
         --------
         with_columns
-
         """
         structify = bool(int(os.environ.get("POLARS_AUTO_STRUCTIFY", 0)))
 
@@ -4081,7 +4043,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 0.0       │
         │ 1.0       │
         └───────────┘
-
         """
         if not isinstance(other, list):
             other = [other]
@@ -4154,7 +4115,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 7.0 │
         │ 8.0 │
         └─────┘
-
         """
         drop_cols = _expand_selectors(self, columns, *more_columns)
         return self._from_pyldf(self._ldf.drop(drop_cols))
@@ -4193,7 +4153,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 2     ┆ 7   ┆ b   │
         │ 3     ┆ 8   ┆ c   │
         └───────┴─────┴─────┘
-
         """
         existing = list(mapping.keys())
         new = list(mapping.values())
@@ -4222,7 +4181,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ b   ┆ 2   │
         │ a   ┆ 1   │
         └─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.reverse())
 
@@ -4299,7 +4257,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 100 ┆ 100 │
         │ 100 ┆ 100 │
         └─────┴─────┘
-
         """
         if fill_value is not None:
             fill_value = parse_as_expression(fill_value, str_as_lit=True)
@@ -4337,7 +4294,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ y   ┆ 3   ┆ 4   │
         │ z   ┆ 5   ┆ 6   │
         └─────┴─────┴─────┘
-
         """
         if length and length < 0:
             raise ValueError(
@@ -4393,7 +4349,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 1   ┆ 7   │
         │ 2   ┆ 8   │
         └─────┴─────┘
-
         """
         return self.head(n)
 
@@ -4443,7 +4398,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 1   ┆ 7   │
         │ 2   ┆ 8   │
         └─────┴─────┘
-
         """
         return self.slice(0, n)
 
@@ -4487,7 +4441,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 5   ┆ 11  │
         │ 6   ┆ 12  │
         └─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.tail(n))
 
@@ -4512,7 +4465,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 5   ┆ 6   │
         └─────┴─────┘
-
         """
         return self.tail(1)
 
@@ -4537,7 +4489,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 1   ┆ 2   │
         └─────┴─────┘
-
         """
         return self.slice(0, 1)
 
@@ -4564,7 +4515,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 4   ┆ 2   │
         └─────┴─────┘
-
         """
         return self.select(F.all().approx_n_unique())
 
@@ -4603,7 +4553,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 1      ┆ 3   ┆ 4   │
         │ 2      ┆ 5   ┆ 6   │
         └────────┴─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.with_row_count(name, offset))
 
@@ -4718,7 +4667,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 0   ┆ 0.0  │
         │ 4   ┆ 13.0 │
         └─────┴──────┘
-
         """
         dtypes: Sequence[PolarsDataType]
 
@@ -4800,7 +4748,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 99.0 ┆ 99.0 │
         │ 4.0  ┆ 13.0 │
         └──────┴──────┘
-
         """
         if not isinstance(value, pl.Expr):
             value = F.lit(value)
@@ -4843,7 +4790,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞══════════╪══════════╡
         │ 1.118034 ┆ 0.433013 │
         └──────────┴──────────┘
-
         """
         return self._from_pyldf(self._ldf.std(ddof))
 
@@ -4884,7 +4830,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞══════╪════════╡
         │ 1.25 ┆ 0.1875 │
         └──────┴────────┘
-
         """
         return self._from_pyldf(self._ldf.var(ddof))
 
@@ -4909,7 +4854,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 4   ┆ 2   │
         └─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.max())
 
@@ -4934,7 +4878,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 1   ┆ 1   │
         └─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.min())
 
@@ -4959,7 +4902,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 10  ┆ 5   │
         └─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.sum())
 
@@ -4984,7 +4926,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪══════╡
         │ 2.5 ┆ 1.25 │
         └─────┴──────┘
-
         """
         return self._from_pyldf(self._ldf.mean())
 
@@ -5009,7 +4950,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 2.5 ┆ 1.0 │
         └─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.median())
 
@@ -5035,7 +4975,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╪═════╡
         │ 1   ┆ 1   ┆ 0   │
         └─────┴─────┴─────┘
-
         """
         return self._from_pyldf(self._ldf.null_count())
 
@@ -5071,7 +5010,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         ╞═════╪═════╡
         │ 3.0 ┆ 1.0 │
         └─────┴─────┘
-
         """
         quantile = parse_as_expression(quantile)
         return self._from_pyldf(self._ldf.quantile(quantile, interpolation))
@@ -5116,7 +5054,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ c       ┆ 7       │
         │ c       ┆ 8       │
         └─────────┴─────────┘
-
         """
         columns = parse_as_list_of_expressions(
             *_expand_selectors(self, columns, *more_columns)
@@ -5202,7 +5139,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 3   ┆ a   ┆ b   │
         │ 1   ┆ a   ┆ b   │
         └─────┴─────┴─────┘
-
         """
         if subset is not None:
             subset = _expand_selectors(self, subset)
@@ -5300,7 +5236,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ null ┆ 2   ┆ null │
         │ null ┆ 1   ┆ 1    │
         └──────┴─────┴──────┘
-
         """
         if subset is not None:
             subset = _expand_selectors(self, subset)
@@ -5365,7 +5300,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ y   ┆ c        ┆ 4     │
         │ z   ┆ c        ┆ 6     │
         └─────┴──────────┴───────┘
-
         """
         value_vars = [] if value_vars is None else _expand_selectors(self, value_vars)
         id_vars = [] if id_vars is None else _expand_selectors(self, id_vars)
@@ -5454,7 +5388,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ -4      ┆ 199996 │
         │ -2      ┆ 199998 │
         └─────────┴────────┘
-
         """
         if no_optimizations:
             predicate_pushdown = False
@@ -5498,7 +5431,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 9.0  ┆ 9.0  ┆ 6.333333 │
         │ 10.0 ┆ null ┆ 9.0      │
         └──────┴──────┴──────────┘
-
         """
         return self.select(F.col("*").interpolate())
 
@@ -5552,7 +5484,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ foo    ┆ 1   ┆ a   ┆ true ┆ [1, 2]    ┆ baz   │
         │ bar    ┆ 2   ┆ b   ┆ null ┆ [3]       ┆ womp  │
         └────────┴─────┴─────┴──────┴───────────┴───────┘
-
         """
         columns = _expand_selectors(self, columns, *more_columns)
         return self._from_pyldf(self._ldf.unnest(columns))
@@ -5782,7 +5713,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
         │ 4   ┆ 700  │
         │ 5   ┆ -66  │
         └─────┴──────┘
-
         """
         if how not in ("left", "inner", "outer"):
             raise ValueError(
@@ -5917,7 +5847,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
             This is slower than a default group by.
             Settings this to `True` blocks the possibility
             to run on the streaming engine.
-
         """
         return self.group_by(by, *more_by, maintain_order=maintain_order)
 
@@ -5970,7 +5899,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
             Object you can call `.agg` on to aggregate by groups, the result
             of which will be sorted by `index_column` (but note that if `by` columns are
             passed, it will only be sorted within each `by` group).
-
         """
         return self.rolling(
             index_column,
@@ -6030,7 +5958,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
             Object you can call `.agg` on to aggregate by groups, the result
             of which will be sorted by `index_column` (but note that if `by` columns are
             passed, it will only be sorted within each `by` group).
-
         """
         return self.rolling(
             index_column,
@@ -6116,7 +6043,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
             Object you can call `.agg` on to aggregate by groups, the result
             of which will be sorted by `index_column` (but note that if `by` columns are
             passed, it will only be sorted within each `by` group).
-
         """  # noqa: W505
         return self.group_by_dynamic(
             index_column,
@@ -6175,7 +6101,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
             streaming engine. That means that the function must produce the same result
             when it is executed in batches or when it is be executed on the full
             dataset.
-
         """
         return self.map_batches(
             function,
@@ -6208,7 +6133,6 @@ naive plan: (run LazyFrame.explain(optimized=True) to see the optimized plan)
             fill None values with the result of this expression.
         n
             Number of places to shift (may be negative).
-
         """
         return self.shift(n, fill_value=fill_value)
 

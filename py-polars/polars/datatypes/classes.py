@@ -141,7 +141,6 @@ class DataType(metaclass=DataTypeClass):
         True
         >>> pl.List.is_(pl.List(pl.Int32))
         False
-
         """
         return self == other and hash(self) == hash(other)
 
@@ -167,7 +166,6 @@ class DataType(metaclass=DataTypeClass):
         False
         >>> pl.List.is_not(pl.List(pl.Int32))  # doctest: +SKIP
         True
-
         """
         from polars.utils.deprecation import issue_deprecation_warning
 
@@ -249,7 +247,6 @@ class DataTypeGroup(frozenset):  # type: ignore[type-arg]
             iterable of data types
         match_base_type:
             match the base type
-
         """
         for it in items:
             if not isinstance(it, (DataType, DataTypeClass)):
@@ -340,7 +337,6 @@ class Decimal(NumericType):
 
     .. warning::
         This is an experimental work-in-progress feature and may not work as expected.
-
     """
 
     precision: int | None
@@ -413,7 +409,6 @@ class Datetime(TemporalType):
             `import zoneinfo; zoneinfo.available_timezones()` for a full list).
             When using to match dtypes, can use "*" to check for Datetime columns
             that have any timezone.
-
         """
         if isinstance(time_zone, timezone):
             time_zone = str(time_zone)
@@ -461,7 +456,6 @@ class Duration(TemporalType):
         ----------
         time_unit : {'us', 'ns', 'ms'}
             Unit of time.
-
         """
         self.time_unit = time_unit
         if self.time_unit not in ("ms", "us", "ns"):
@@ -496,7 +490,6 @@ class Categorical(DataType):
         ordering : {'lexical', 'physical'}
             Ordering by order of appearance (physical, default)
             or string value (lexical).
-
     """
 
     ordering: CategoricalOrdering | None
@@ -529,7 +522,6 @@ class Enum(DataType):
 
     .. warning::
         This is an experimental work-in-progress feature and may not work as expected.
-
     """
 
     categories: list[str]
@@ -542,7 +534,6 @@ class Enum(DataType):
         ----------
         categories
             Categories in the dataset.
-
         """
         self.categories = categories
 
@@ -607,7 +598,6 @@ class List(NestedType):
         │ [1, 2]        ┆ [1.0, 2.0]  │
         │ [3, 4]        ┆ [3.0, 4.0]  │
         └───────────────┴─────────────┘
-
         """
         self.inner = polars.datatypes.py_type_to_dtype(inner)
 
@@ -664,7 +654,6 @@ class Array(NestedType):
                 [1, 2]
                 [4, 3]
         ]
-
         """
         self.inner = polars.datatypes.py_type_to_dtype(inner)
         self.width = width
@@ -710,7 +699,6 @@ class Field:
             The name of the field within its parent `Struct`
         dtype
             The `DataType` of the field's values
-
         """
         self.name = name
         self.dtype = polars.datatypes.py_type_to_dtype(dtype)

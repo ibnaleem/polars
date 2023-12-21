@@ -30,7 +30,6 @@ class _LazyModule(ModuleType):
     We do NOT register this module with `sys.modules` so as not to cause
     confusion in the global environment. This way we have a valid proxy
     module for our own use, but it lives *exclusively* within polars.
-
     """
 
     __lazy__ = True
@@ -58,7 +57,6 @@ class _LazyModule(ModuleType):
         module_available : bool
             indicate if the referenced module is actually available (we will proxy it
             in both cases, but raise a helpful error when invoked if it doesn't exist).
-
         """
         self._module_available = module_available
         self._module_name = module_name
@@ -123,7 +121,6 @@ def _lazy_import(module_name: str) -> tuple[ModuleType, bool]:
     tuple of (Module, bool)
         A lazy-loading module and a boolean indicating if the requested/underlying
         module exists (if not, the returned module is a proxy).
-
     """
     # check if module is LOADED
     if module_name in sys.modules:

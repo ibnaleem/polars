@@ -169,7 +169,6 @@ class ExprDateTimeNameSpace:
         │ 2001-01-01 00:50:00 ┆ 2001-01-01 00:30:00 │
         │ 2001-01-01 01:00:00 ┆ 2001-01-01 01:00:00 │
         └─────────────────────┴─────────────────────┘
-
         """
         every = deprecate_saturating(every)
         offset = deprecate_saturating(offset)
@@ -310,7 +309,6 @@ class ExprDateTimeNameSpace:
         │ 2001-01-01 00:50:00 ┆ 2001-01-01 01:00:00 │
         │ 2001-01-01 01:00:00 ┆ 2001-01-01 01:00:00 │
         └─────────────────────┴─────────────────────┘
-
         """
         every = deprecate_saturating(every)
         offset = deprecate_saturating(offset)
@@ -432,7 +430,6 @@ class ExprDateTimeNameSpace:
         │ 2020-04-01 00:00:00 ┆ 2020/04/01 00:00:00 │
         │ 2020-05-01 00:00:00 ┆ 2020/05/01 00:00:00 │
         └─────────────────────┴─────────────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_to_string(format))
 
@@ -483,7 +480,6 @@ class ExprDateTimeNameSpace:
         │ 2020-04-01 00:00:00 ┆ 2020/04/01 00:00:00 │
         │ 2020-05-01 00:00:00 ┆ 2020/05/01 00:00:00 │
         └─────────────────────┴─────────────────────┘
-
         """
         return self.to_string(format)
 
@@ -521,7 +517,6 @@ class ExprDateTimeNameSpace:
         │ 1978-01-01 ┆ 1978          ┆ 1977     │
         │ 1979-01-01 ┆ 1979          ┆ 1979     │
         └────────────┴───────────────┴──────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_year())
 
@@ -553,7 +548,6 @@ class ExprDateTimeNameSpace:
         │ false │
         │ false │
         └───────┘
-
         """
         return wrap_expr(self._pyexpr.dt_is_leap_year())
 
@@ -592,7 +586,6 @@ class ExprDateTimeNameSpace:
         │ 1978-01-01 ┆ 1978          ┆ 1977     │
         │ 1979-01-01 ┆ 1979          ┆ 1979     │
         └────────────┴───────────────┴──────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_iso_year())
 
@@ -626,7 +619,6 @@ class ExprDateTimeNameSpace:
         │ 2001-06-30 ┆ 2       │
         │ 2001-12-27 ┆ 4       │
         └────────────┴─────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_quarter())
 
@@ -661,7 +653,6 @@ class ExprDateTimeNameSpace:
         │ 2001-06-30 ┆ 6     │
         │ 2001-12-27 ┆ 12    │
         └────────────┴───────┘
-
         """
         return wrap_expr(self._pyexpr.dt_month())
 
@@ -696,7 +687,6 @@ class ExprDateTimeNameSpace:
         │ 2001-06-30 ┆ 26   │
         │ 2001-12-27 ┆ 52   │
         └────────────┴──────┘
-
         """
         return wrap_expr(self._pyexpr.dt_week())
 
@@ -744,7 +734,6 @@ class ExprDateTimeNameSpace:
         │ 2001-12-24 ┆ 1       ┆ 24           ┆ 358         │
         │ 2001-12-25 ┆ 2       ┆ 25           ┆ 359         │
         └────────────┴─────────┴──────────────┴─────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_weekday())
 
@@ -793,7 +782,6 @@ class ExprDateTimeNameSpace:
         │ 2001-12-24 ┆ 1       ┆ 24           ┆ 358         │
         │ 2001-12-25 ┆ 2       ┆ 25           ┆ 359         │
         └────────────┴─────────┴──────────────┴─────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_day())
 
@@ -842,7 +830,6 @@ class ExprDateTimeNameSpace:
         │ 2001-12-24 ┆ 1       ┆ 24           ┆ 358         │
         │ 2001-12-25 ┆ 2       ┆ 25           ┆ 359         │
         └────────────┴─────────┴──────────────┴─────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_ordinal_day())
 
@@ -856,7 +843,6 @@ class ExprDateTimeNameSpace:
         -------
         Expr
             Expression of data type :class:`Time`.
-
         """
         return wrap_expr(self._pyexpr.dt_time())
 
@@ -870,7 +856,6 @@ class ExprDateTimeNameSpace:
         -------
         Expr
             Expression of data type :class:`Date`.
-
         """
         return wrap_expr(self._pyexpr.dt_date())
 
@@ -884,7 +869,6 @@ class ExprDateTimeNameSpace:
         -------
         Expr
             Expression of data type :class:`Datetime`.
-
         """
         return wrap_expr(self._pyexpr.dt_datetime())
 
@@ -924,7 +908,6 @@ class ExprDateTimeNameSpace:
         │ 2010-01-01 15:30:45 ┆ 15   │
         │ 2022-12-31 23:59:59 ┆ 23   │
         └─────────────────────┴──────┘
-
         """
         return wrap_expr(self._pyexpr.dt_hour())
 
@@ -964,7 +947,6 @@ class ExprDateTimeNameSpace:
         │ 2010-01-01 15:30:45 ┆ 30     │
         │ 2022-12-31 23:59:59 ┆ 59     │
         └─────────────────────┴────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_minute())
 
@@ -1024,7 +1006,6 @@ class ExprDateTimeNameSpace:
         │ 2000-01-01 00:00:03.111110 ┆ 3.11111  │
         │ 2000-01-01 00:00:05.765431 ┆ 5.765431 │
         └────────────────────────────┴──────────┘
-
         """
         sec = wrap_expr(self._pyexpr.dt_second())
         return (
@@ -1043,7 +1024,6 @@ class ExprDateTimeNameSpace:
         -------
         Expr
             Expression of data type :class:`Int32`.
-
         """
         return wrap_expr(self._pyexpr.dt_millisecond())
 
@@ -1093,7 +1073,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-01 00:00:00.999 ┆ 999000      │
         │ 2020-01-01 00:00:01     ┆ 0           │
         └─────────────────────────┴─────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_microsecond())
 
@@ -1107,7 +1086,6 @@ class ExprDateTimeNameSpace:
         -------
         Expr
             Expression of data type :class:`Int32`.
-
         """
         return wrap_expr(self._pyexpr.dt_nanosecond())
 
@@ -1140,7 +1118,6 @@ class ExprDateTimeNameSpace:
         │ 2001-01-02 ┆ 978393600000000 ┆ 978393600 │
         │ 2001-01-03 ┆ 978480000000000 ┆ 978480000 │
         └────────────┴─────────────────┴───────────┘
-
         """
         if time_unit in DTYPE_TEMPORAL_UNITS:
             return self.timestamp(time_unit)  # type: ignore[arg-type]
@@ -1182,7 +1159,6 @@ class ExprDateTimeNameSpace:
         │ 2001-01-02 ┆ 978393600000000 ┆ 978393600000 │
         │ 2001-01-03 ┆ 978480000000000 ┆ 978480000000 │
         └────────────┴─────────────────┴──────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_timestamp(time_unit))
 
@@ -1228,7 +1204,6 @@ class ExprDateTimeNameSpace:
         │ 2001-01-02 00:00:00 ┆ +32974-01-22 00:00:00 │
         │ 2001-01-03 00:00:00 ┆ +32976-10-18 00:00:00 │
         └─────────────────────┴───────────────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_with_time_unit(time_unit))
 
@@ -1268,7 +1243,6 @@ class ExprDateTimeNameSpace:
         │ 2001-01-02 00:00:00 ┆ 2001-01-02 00:00:00 ┆ 2001-01-02 00:00:00 │
         │ 2001-01-03 00:00:00 ┆ 2001-01-03 00:00:00 ┆ 2001-01-03 00:00:00 │
         └─────────────────────┴─────────────────────┴─────────────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_cast_time_unit(time_unit))
 
@@ -1414,7 +1388,6 @@ class ExprDateTimeNameSpace:
         │ 2018-10-28 02:30:00 ┆ latest    ┆ 2018-10-28 02:30:00 CET       │
         │ 2018-10-28 02:00:00 ┆ latest    ┆ 2018-10-28 02:00:00 CET       │
         └─────────────────────┴───────────┴───────────────────────────────┘
-
         """
         ambiguous = rename_use_earliest_to_ambiguous(use_earliest, ambiguous)
         if not isinstance(ambiguous, pl.Expr):
@@ -1458,7 +1431,6 @@ class ExprDateTimeNameSpace:
         │ 2020-04-01 00:00:00 ┆ 31        │
         │ 2020-05-01 00:00:00 ┆ 30        │
         └─────────────────────┴───────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_days())
 
@@ -1498,7 +1470,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-03 00:00:00 ┆ 24         │
         │ 2020-01-04 00:00:00 ┆ 24         │
         └─────────────────────┴────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_hours())
 
@@ -1538,7 +1509,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-03 00:00:00 ┆ 1440         │
         │ 2020-01-04 00:00:00 ┆ 1440         │
         └─────────────────────┴──────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_minutes())
 
@@ -1580,7 +1550,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-01 00:03:00 ┆ 60           │
         │ 2020-01-01 00:04:00 ┆ 60           │
         └─────────────────────┴──────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_seconds())
 
@@ -1626,7 +1595,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-01 00:00:00.999 ┆ 1                 │
         │ 2020-01-01 00:00:01     ┆ 1                 │
         └─────────────────────────┴───────────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_milliseconds())
 
@@ -1672,7 +1640,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-01 00:00:00.999 ┆ 1000              │
         │ 2020-01-01 00:00:01     ┆ 1000              │
         └─────────────────────────┴───────────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_microseconds())
 
@@ -1718,7 +1685,6 @@ class ExprDateTimeNameSpace:
         │ 2020-01-01 00:00:00.999 ┆ 1000000          │
         │ 2020-01-01 00:00:01     ┆ 1000000          │
         └─────────────────────────┴──────────────────┘
-
         """
         return wrap_expr(self._pyexpr.dt_total_nanoseconds())
 
@@ -1984,7 +1950,6 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_days` instead.
-
         """
         return self.total_days()
 
@@ -1995,7 +1960,6 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_hours` instead.
-
         """
         return self.total_hours()
 
@@ -2006,7 +1970,6 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_minutes` instead.
-
         """
         return self.total_minutes()
 
@@ -2017,7 +1980,6 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_seconds` instead.
-
         """
         return self.total_seconds()
 
@@ -2028,7 +1990,6 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_milliseconds` instead.
-
         """
         return self.total_milliseconds()
 
@@ -2039,7 +2000,6 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_microseconds` instead.
-
         """
         return self.total_microseconds()
 
@@ -2050,6 +2010,5 @@ class ExprDateTimeNameSpace:
 
         .. deprecated:: 0.19.13
             Use :meth:`total_nanoseconds` instead.
-
         """
         return self.total_nanoseconds()

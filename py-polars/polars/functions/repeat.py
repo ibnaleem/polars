@@ -108,7 +108,6 @@ def repeat(
             3
             3
     ]
-
     """
     if isinstance(n, int):
         n = F.lit(n)
@@ -190,7 +189,6 @@ def ones(
         1
         1
     ]
-
     """
     return repeat(1.0, n=n, dtype=dtype, eager=eager).alias("ones")
 
@@ -266,6 +264,5 @@ def zeros(
         0
         0
     ]
-
     """
     return repeat(0.0, n=n, dtype=dtype, eager=eager).alias("zeros")

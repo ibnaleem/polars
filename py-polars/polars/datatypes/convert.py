@@ -182,7 +182,6 @@ def unpack_dtypes(
     ...     [struct_dtype, list_dtype], include_compound=True
     ... )  # doctest: +IGNORE_RESULT
     {Float64, Int64, Utf8, List(Float64), Struct([Field('a', Int64), Field('b', Utf8), Field('c', List(Float64))])}
-
     """  # noqa: W505
     if not dtypes:
         return set()

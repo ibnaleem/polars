@@ -36,7 +36,6 @@ class ExprArrayNameSpace:
         │ 1   │
         │ 3   │
         └─────┘
-
         """
         return wrap_expr(self._pyexpr.arr_min())
 
@@ -60,7 +59,6 @@ class ExprArrayNameSpace:
         │ 2   │
         │ 4   │
         └─────┘
-
         """
         return wrap_expr(self._pyexpr.arr_max())
 
@@ -84,7 +82,6 @@ class ExprArrayNameSpace:
         │ 3   │
         │ 7   │
         └─────┘
-
         """
         return wrap_expr(self._pyexpr.arr_sum())
 
@@ -114,7 +111,6 @@ class ExprArrayNameSpace:
         ╞═══════════╡
         │ [1, 2]    │
         └───────────┘
-
         """
         return wrap_expr(self._pyexpr.arr_unique(maintain_order))
 
@@ -143,6 +139,5 @@ class ExprArrayNameSpace:
         │ [1, 2]   │
         │ [3, 4]   │
         └──────────┘
-
         """
         return wrap_expr(self._pyexpr.arr_to_list())

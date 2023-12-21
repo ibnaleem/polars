@@ -32,7 +32,6 @@ class ArrayNameSpace:
             1
             3
         ]
-
         """
 
     def max(self) -> Series:
@@ -49,7 +48,6 @@ class ArrayNameSpace:
             2
             4
         ]
-
         """
 
     def sum(self) -> Series:
@@ -72,7 +70,6 @@ class ArrayNameSpace:
         │ 3   │
         │ 7   │
         └─────┘
-
         """
 
     def unique(self, *, maintain_order: bool = False) -> Series:
@@ -101,7 +98,6 @@ class ArrayNameSpace:
         ╞═══════════╡
         │ [1, 2]    │
         └───────────┘
-
         """
 
     def to_list(self) -> Series:
@@ -123,5 +119,4 @@ class ArrayNameSpace:
                 [1, 2]
                 [3, 4]
         ]
-
         """

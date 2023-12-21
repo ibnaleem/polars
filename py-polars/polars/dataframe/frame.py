@@ -344,7 +344,6 @@ class DataFrame:
     ...     pass
     >>> isinstance(MyDataFrame().lazy().collect(), MyDataFrame)
     False
-
     """
 
     _accessors: ClassVar[set[str]] = set()
@@ -472,7 +471,6 @@ class DataFrame:
         schema_overrides : dict, default None
           Support type specification or override of one or more columns; note that
           any dtypes inferred from the columns param will be overridden.
-
         """
         return cls._from_pydf(
             dict_to_pydf(data, schema=schema, schema_overrides=schema_overrides)
@@ -514,7 +512,6 @@ class DataFrame:
             this does not yield conclusive results, column orientation is used.
         infer_schema_length
             How many rows to scan to determine the column type.
-
         """
         return cls._from_pydf(
             sequence_to_pydf(
@@ -559,7 +556,6 @@ class DataFrame:
             Whether to interpret two-dimensional data as columns or as rows. If None,
             the orientation is inferred by matching the columns and data dimensions. If
             this does not yield conclusive results, column orientation is used.
-
         """
         return cls._from_pydf(
             numpy_to_pydf(
@@ -601,7 +597,6 @@ class DataFrame:
             any dtypes inferred from the columns param will be overridden.
         rechunk : bool, default True
             Make sure that all data is in contiguous memory.
-
         """
         return cls._from_pydf(
             arrow_to_pydf(
@@ -649,7 +644,6 @@ class DataFrame:
             If the data contains NaN values they will be converted to null/None.
         include_index : bool, default False
             Load any non-default pandas indexes as columns.
-
         """
         return cls._from_pydf(
             pandas_to_pydf(
@@ -702,7 +696,6 @@ class DataFrame:
         See Also
         --------
         polars.io.read_csv
-
         """
         self = cls.__new__(cls)
 
@@ -835,7 +828,6 @@ class DataFrame:
         See Also
         --------
         polars.io.read_parquet
-
         """
         if isinstance(source, (str, Path)):
             source = normalize_filepath(source)
@@ -901,7 +893,6 @@ class DataFrame:
             Columns.
         n_rows
             Stop reading from Apache Avro file after reading `n_rows`.
-
         """
         if isinstance(source, (str, Path)):
             source = normalize_filepath(source)
@@ -947,7 +938,6 @@ class DataFrame:
             Make sure that all data is contiguous.
         memory_map
             Memory map the file
-
         """
         if isinstance(source, (str, Path)):
             source = normalize_filepath(source)
@@ -1025,7 +1015,6 @@ class DataFrame:
             Row count offset.
         rechunk
             Make sure that all data is contiguous.
-
         """
         if isinstance(source, (str, Path)):
             source = normalize_filepath(source)
@@ -1061,7 +1050,6 @@ class DataFrame:
         See Also
         --------
         polars.io.read_json
-
         """
         if isinstance(source, StringIO):
             source = BytesIO(source.getvalue().encode())
@@ -1094,7 +1082,6 @@ class DataFrame:
         See Also
         --------
         polars.io.read_ndjson
-
         """
         if isinstance(source, StringIO):
             source = BytesIO(source.getvalue().encode())
@@ -1125,7 +1112,6 @@ class DataFrame:
         >>> df = pl.DataFrame({"foo": [1, 2, 3, 4, 5]})
         >>> df.shape
         (5, 1)
-
         """
         return self._df.shape()
 
@@ -1139,7 +1125,6 @@ class DataFrame:
         >>> df = pl.DataFrame({"foo": [1, 2, 3, 4, 5]})
         >>> df.height
         5
-
         """
         return self._df.height()
 
@@ -1153,7 +1138,6 @@ class DataFrame:
         >>> df = pl.DataFrame({"foo": [1, 2, 3, 4, 5]})
         >>> df.width
         1
-
         """
         return self._df.width()
 
@@ -1188,7 +1172,6 @@ class DataFrame:
         │ 2     ┆ 7      ┆ b      │
         │ 3     ┆ 8      ┆ c      │
         └───────┴────────┴────────┘
-
         """
         return self._df.columns()
 
@@ -1202,7 +1185,6 @@ class DataFrame:
         names
             A list with new names for the `DataFrame`.
             The length of the list should be equal to the width of the `DataFrame`.
-
         """
         self._df.set_column_names(names)
 
@@ -1239,7 +1221,6 @@ class DataFrame:
         │ 2   ┆ 7.0 ┆ b   │
         │ 3   ┆ 8.0 ┆ c   │
         └─────┴─────┴─────┘
-
         """
         return self._df.dtypes()
 
@@ -1271,7 +1252,6 @@ class DataFrame:
         ... )
         >>> df.schema
         OrderedDict({'foo': Int64, 'bar': Float64, 'ham': Utf8})
-
         """
         return OrderedDict(zip(self.columns, self.dtypes))
 
@@ -1324,7 +1304,6 @@ class DataFrame:
         2
         >>> dfi.get_column(1).dtype
         (<DtypeKind.FLOAT: 2>, 64, 'g', '=')
-
         """
         if nan_as_null:
             raise NotImplementedError(
@@ -1816,7 +1795,6 @@ class DataFrame:
 
         * POLARS_FMT_MAX_COLS: set the number of columns
         * POLARS_FMT_MAX_ROWS: set the number of rows
-
         """
         max_cols = int(os.environ.get("POLARS_FMT_MAX_COLS", default=75))
         if max_cols < 0:
@@ -1864,7 +1842,6 @@ class DataFrame:
         5
         >>> df.item(2, "b")
         6
-
         """
         if row is None and column is None:
             if self.shape != (1, 1):
@@ -1908,7 +1885,6 @@ class DataFrame:
         ----
         foo: [[1,2,3,4,5,6]]
         bar: [["a","b","c","d","e","f"]]
-
         """
         if self.shape[1]:  # all except 0x0 dataframe
             record_batches = self._df.to_arrow()
@@ -2017,7 +1993,6 @@ class DataFrame:
             2
             -30
         ]}
-
         """
         if as_series:
             return {s.name: s for s in self}
@@ -2040,7 +2015,6 @@ class DataFrame:
         >>> df = pl.DataFrame({"foo": [1, 2, 3], "bar": [4, 5, 6]})
         >>> df.to_dicts()
         [{'foo': 1, 'bar': 4}, {'foo': 2, 'bar': 5}, {'foo': 3, 'bar': 6}]
-
         """
         return self.rows(named=True)
 
@@ -2112,7 +2086,6 @@ class DataFrame:
         >>> df.to_numpy(structured=True).view(np.recarray)
         rec.array([(1, 6.5, 'a'), (2, 7. , 'b'), (3, 8.5, 'c')],
                   dtype=[('foo', 'u1'), ('bar', '<f4'), ('ham', '<U1')])
-
         """
         if structured:
             # see: https://numpy.org/doc/stable/user/basics.rec.html
@@ -2219,7 +2192,6 @@ class DataFrame:
         bar           int64[pyarrow]
         ham    large_string[pyarrow]
         dtype: object
-
         """
         if use_pyarrow_extension_array:
             if parse_version(pd.__version__) < parse_version("1.5"):
@@ -2277,7 +2249,6 @@ class DataFrame:
                 7
                 8
         ]
-
         """
         if not isinstance(index, int):
             raise TypeError(
@@ -2332,7 +2303,6 @@ class DataFrame:
         │ 2   ┆ 7.0 ┆ b   │
         │ 3   ┆ 8.0 ┆ c   │
         └─────┴─────┴─────┘
-
         """
         output = StringIO()
         output.write("pl.DataFrame(\n    [\n")
@@ -2402,7 +2372,6 @@ class DataFrame:
         '{"columns":[{"name":"foo","datatype":"Int64","bit_settings":"","values":[1,2,3]},{"name":"bar","datatype":"Int64","bit_settings":"","values":[6,7,8]}]}'
         >>> df.write_json(row_oriented=True)
         '[{"foo":1,"bar":6},{"foo":2,"bar":7},{"foo":3,"bar":8}]'
-
         """
         if isinstance(file, (str, Path)):
             file = normalize_filepath(file)
@@ -2449,7 +2418,6 @@ class DataFrame:
         ... )
         >>> df.write_ndjson()
         '{"foo":1,"bar":6}\n{"foo":2,"bar":7}\n{"foo":3,"bar":8}\n'
-
         """
         if isinstance(file, (str, Path)):
             file = normalize_filepath(file)
@@ -2596,7 +2564,6 @@ class DataFrame:
         ... )
         >>> path: pathlib.Path = dirpath / "new_file.csv"
         >>> df.write_csv(path, separator=",")
-
         """
         _check_arg_is_1byte("separator", separator, can_be_empty=False)
         _check_arg_is_1byte("quote_char", quote_char, can_be_empty=True)
@@ -2664,7 +2631,6 @@ class DataFrame:
         ... )
         >>> path: pathlib.Path = dirpath / "new_file.avro"
         >>> df.write_avro(path)
-
         """
         if compression is None:
             compression = "uncompressed"
@@ -3032,7 +2998,6 @@ class DataFrame:
         ...     hide_gridlines=True,
         ...     sheet_zoom=125,
         ... )
-
         """  # noqa: W505
         try:
             import xlsxwriter
@@ -3234,7 +3199,6 @@ class DataFrame:
         ... )
         >>> path: pathlib.Path = dirpath / "new_file.arrow"
         >>> df.write_ipc(path)
-
         """
         return_bytes = file is None
         if return_bytes:
@@ -3295,7 +3259,6 @@ class DataFrame:
         ... )
         >>> path: pathlib.Path = dirpath / "new_file.arrow"
         >>> df.write_ipc_stream(path)
-
         """
         return_bytes = file is None
         if return_bytes:
@@ -3384,7 +3347,6 @@ class DataFrame:
         ...     use_pyarrow=True,
         ...     pyarrow_options={"partition_cols": ["watermark"]},
         ... )
-
         """
         if compression is None:
             compression = "uncompressed"
@@ -3480,7 +3442,6 @@ class DataFrame:
         int
             The number of rows affected, if the driver provides this information.
             Otherwise, returns -1.
-
         """
         from polars.io.database import _open_adbc_connection
 
@@ -3853,7 +3814,6 @@ class DataFrame:
         25888898
         >>> df.estimated_size("mb")
         24.689577102661133
-
         """
         sz = self._df.estimated_size()
         return scale_bytes(sz, unit)
@@ -4000,7 +3960,6 @@ class DataFrame:
         │ b   ┆ 2   │
         │ a   ┆ 1   │
         └─────┴─────┘
-
         """
         return self.select(F.col("*").reverse())
 
@@ -4029,7 +3988,6 @@ class DataFrame:
         │ 2     ┆ 7   ┆ b   │
         │ 3     ┆ 8   ┆ c   │
         └───────┴─────┴─────┘
-
         """
         return self.lazy().rename(mapping).collect(_eager=True)
 
@@ -4082,7 +4040,6 @@ class DataFrame:
         │ 3   ┆ 10.0 ┆ false ┆ 20.5 │
         │ 4   ┆ 13.0 ┆ true  ┆ 0.0  │
         └─────┴──────┴───────┴──────┘
-
         """
         if index < 0:
             index = len(self.columns) + index
@@ -4184,7 +4141,6 @@ class DataFrame:
         ╞═════╪═════╪═════╡
         │ 2   ┆ 7   ┆ b   │
         └─────┴─────┴─────┘
-
         """
         return self.lazy().filter(*predicates, **constraints).collect(_eager=True)
 
@@ -4258,7 +4214,6 @@ class DataFrame:
         $ d  <str> None, 'b', 'c'
         $ e  <str> 'usd', 'eur', None
         $ f <date> 2020-01-01, 2021-01-02, 2022-01-01
-
         """
         # always print at most this number of values (mainly ensures that
         # we do not cast long arrays to strings, which would be slow)
@@ -4355,7 +4310,6 @@ class DataFrame:
         │ 75%        ┆ 3.0      ┆ 5.0      ┆ null  ┆ null ┆ null ┆ null       │
         │ max        ┆ 3.0      ┆ 5.0      ┆ True  ┆ c    ┆ usd  ┆ 2022-01-01 │
         └────────────┴──────────┴──────────┴───────┴──────┴──────┴────────────┘
-
         """
         if not self.columns:
             raise TypeError("cannot describe a DataFrame without any columns")
@@ -4446,7 +4400,6 @@ class DataFrame:
         ... )
         >>> df.get_column_index("ham")
         2
-
         """
         return self._df.get_column_index(name)
 
@@ -4577,7 +4530,6 @@ class DataFrame:
         │ null ┆ 4.0 ┆ b   │
         │ 2    ┆ 5.0 ┆ c   │
         └──────┴─────┴─────┘
-
         """
         return (
             self.lazy()
@@ -4658,7 +4610,6 @@ class DataFrame:
         │ a   ┆ 2   │
         │ c   ┆ 1   │
         └─────┴─────┘
-
         """
         return (
             self.lazy()
@@ -4750,7 +4701,6 @@ class DataFrame:
         │ b   ┆ 1   │
         │ b   ┆ 2   │
         └─────┴─────┘
-
         """
         return (
             self.lazy()
@@ -4804,7 +4754,6 @@ class DataFrame:
         True
         >>> df1.equals(df2)
         False
-
         """
         return self._df.equals(other._df, null_equal)
 
@@ -4841,7 +4790,6 @@ class DataFrame:
         │ 20  ┆ 5   │
         │ 30  ┆ 6   │
         └─────┴─────┘
-
         """
         return self._replace(column, new_column)
 
@@ -4876,7 +4824,6 @@ class DataFrame:
         │ 2   ┆ 7.0 ┆ b   │
         │ 3   ┆ 8.0 ┆ c   │
         └─────┴─────┴─────┘
-
         """
         if (length is not None) and length < 0:
             length = self.height - offset + length
@@ -4929,7 +4876,6 @@ class DataFrame:
         │ 1   ┆ 6   ┆ a   │
         │ 2   ┆ 7   ┆ b   │
         └─────┴─────┴─────┘
-
         """
         if n < 0:
             n = max(0, self.height + n)
@@ -4982,7 +4928,6 @@ class DataFrame:
         │ 4   ┆ 9   ┆ d   │
         │ 5   ┆ 10  ┆ e   │
         └─────┴─────┴─────┘
-
         """
         if n < 0:
             n = max(0, self.height + n)
@@ -5003,7 +4948,6 @@ class DataFrame:
         See Also
         --------
         head
-
         """
         return self.head(n)
 
@@ -5112,7 +5056,6 @@ class DataFrame:
         │ null ┆ null │
         │ 1    ┆ 1    │
         └──────┴──────┘
-
         """
         return self.lazy().drop_nulls(subset).collect(_eager=True)
 
@@ -5180,7 +5123,6 @@ class DataFrame:
         │ 3   ┆ 1   │
         │ 4   ┆ 2   │
         └─────┴─────┘
-
         """
         return function(self, *args, **kwargs)
 
@@ -5214,7 +5156,6 @@ class DataFrame:
         │ 1      ┆ 3   ┆ 4   │
         │ 2      ┆ 5   ┆ 6   │
         └────────┴─────┴─────┘
-
         """
         return self._from_pydf(self._df.with_row_count(name, offset))
 
@@ -5353,7 +5294,6 @@ class DataFrame:
         ╞═════╪═════╪═════╡
         │ c   ┆ 3   ┆ 1   │
         └─────┴─────┴─────┘
-
         """
         return GroupBy(self, by, *more_by, maintain_order=maintain_order)
 
@@ -5491,7 +5431,6 @@ class DataFrame:
         │ 2020-01-03 19:45:32 ┆ 11    ┆ 2     ┆ 9     │
         │ 2020-01-08 23:16:43 ┆ 1     ┆ 1     ┆ 1     │
         └─────────────────────┴───────┴───────┴───────┘
-
         """
         period = deprecate_saturating(period)
         offset = deprecate_saturating(offset)
@@ -5819,7 +5758,6 @@ class DataFrame:
         │ 2               ┆ 5               ┆ 2   ┆ ["B", "B", "C"] │
         │ 4               ┆ 7               ┆ 4   ┆ ["C"]           │
         └─────────────────┴─────────────────┴─────┴─────────────────┘
-
         """  # noqa: W505
         every = deprecate_saturating(every)
         period = deprecate_saturating(period)
@@ -5930,7 +5868,6 @@ class DataFrame:
         │ 2021-05-01 00:00:00 ┆ B      ┆ 1      │
         │ 2021-06-01 00:00:00 ┆ B      ┆ 3      │
         └─────────────────────┴────────┴────────┘
-
         """
         every = deprecate_saturating(every)
         offset = deprecate_saturating(offset)
@@ -6078,7 +6015,6 @@ class DataFrame:
         │ 2018-05-12 00:00:00 ┆ 83.12      ┆ 4566 │
         │ 2019-05-12 00:00:00 ┆ 83.52      ┆ 4696 │
         └─────────────────────┴────────────┴──────┘
-
         """
         tolerance = deprecate_saturating(tolerance)
         if not isinstance(other, DataFrame):
@@ -6270,7 +6206,6 @@ class DataFrame:
         Notes
         -----
         For joining on columns with categorical data, see `pl.StringCache()`.
-
         """
         if not isinstance(other, DataFrame):
             raise TypeError(
@@ -6383,7 +6318,6 @@ class DataFrame:
         In this case it is better to use the following native expression:
 
         >>> df.select(pl.col("foo") * 2 + pl.col("bar"))  # doctest: +IGNORE_RESULT
-
         """
         # TODO: Enable warning for inefficient map
         # from polars.utils.udfs import warn_on_inefficient_map
@@ -6429,7 +6363,6 @@ class DataFrame:
         │ 2   ┆ 7   ┆ b   ┆ 20    │
         │ 3   ┆ 8   ┆ c   ┆ 30    │
         └─────┴─────┴─────┴───────┘
-
         """
         if not isinstance(columns, list):
             columns = columns.get_columns()
@@ -6482,7 +6415,6 @@ class DataFrame:
         │ 3   ┆ 8   ┆ c   │
         │ 4   ┆ 9   ┆ d   │
         └─────┴─────┴─────┘
-
         """
         if in_place:
             try:
@@ -6550,7 +6482,6 @@ class DataFrame:
         │ 20  ┆ 50  │
         │ 30  ┆ 60  │
         └─────┴─────┘
-
         """
         try:
             self._df.extend(other._df)
@@ -6642,7 +6573,6 @@ class DataFrame:
         │ 7.0 │
         │ 8.0 │
         └─────┘
-
         """
         return self.lazy().drop(columns, *more_columns).collect(_eager=True)
 
@@ -6677,7 +6607,6 @@ class DataFrame:
             "b"
             "c"
         ]
-
         """
         return wrap_s(self._df.drop_in_place(name))
 
@@ -6745,7 +6674,6 @@ class DataFrame:
         │ 2   ┆ 7   ┆ 2021-03-04 │
         │ 3   ┆ 8   ┆ 2022-05-06 │
         └─────┴─────┴────────────┘
-
         """
         return self.lazy().cast(dtypes, strict=strict).collect(_eager=True)
 
@@ -6793,7 +6721,6 @@ class DataFrame:
         │ null ┆ null ┆ null │
         │ null ┆ null ┆ null │
         └──────┴──────┴──────┘
-
         """
         # faster path
         if n == 0:
@@ -6839,7 +6766,6 @@ class DataFrame:
         │ 3   ┆ 10.0 ┆ false │
         │ 4   ┆ 13.0 ┆ true  │
         └─────┴──────┴───────┘
-
         """
         return self._from_pydf(self._df.clone())
 
@@ -6895,7 +6821,6 @@ class DataFrame:
             false
             true
         ]]
-
         """
         return [wrap_s(s) for s in self._df.get_columns()]
 
@@ -6927,7 +6852,6 @@ class DataFrame:
                 2
                 3
         ]
-
         """
         return wrap_s(self._df.get_column(name))
 
@@ -7021,7 +6945,6 @@ class DataFrame:
         │ 0   ┆ 0.0  │
         │ 4   ┆ 13.0 │
         └─────┴──────┘
-
         """
         return (
             self.lazy()
@@ -7072,7 +6995,6 @@ class DataFrame:
         │ 99.0 ┆ 99.0 │
         │ 4.0  ┆ 13.0 │
         └──────┴──────┘
-
         """
         return self.lazy().fill_nan(value).collect(_eager=True)
 
@@ -7132,7 +7054,6 @@ class DataFrame:
         │ c       ┆ 7       │
         │ c       ┆ 8       │
         └─────────┴─────────┘
-
         """
         return self.lazy().explode(columns, *more_columns).collect(_eager=True)
 
@@ -7280,7 +7201,6 @@ class DataFrame:
         │ a    ┆ 0.998347 ┆ null     │
         │ b    ┆ 0.964028 ┆ 0.999954 │
         └──────┴──────────┴──────────┘
-
         """  # noqa: W505
         values = _expand_selectors(self, values)
         index = _expand_selectors(self, index)
@@ -7377,7 +7297,6 @@ class DataFrame:
         │ y   ┆ c        ┆ 4     │
         │ z   ┆ c        ┆ 6     │
         └─────┴──────────┴───────┘
-
         """
         value_vars = [] if value_vars is None else _expand_selectors(self, value_vars)
         id_vars = [] if id_vars is None else _expand_selectors(self, id_vars)
@@ -7480,7 +7399,6 @@ class DataFrame:
         │ 4   ┆ 0   │
         │ 5   ┆ 0   │
         └─────┴─────┘
-
         """
         import math
 
@@ -7684,7 +7602,6 @@ class DataFrame:
         ╞═════╪═════╪═════╡
         │ c   ┆ 3   ┆ 1   │
         └─────┴─────┴─────┘}
-
         """
         by = _expand_selectors(self, by, *more_by)
         partitions = [
@@ -7780,7 +7697,6 @@ class DataFrame:
         │ 100 ┆ 100 │
         │ 100 ┆ 100 │
         └─────┴─────┘
-
         """
         return self.lazy().shift(n, fill_value=fill_value).collect(_eager=True)
 
@@ -7894,7 +7810,6 @@ class DataFrame:
         ... )
         >>> df.lazy()  # doctest: +ELLIPSIS
         <LazyFrame [3 cols, {"a": Int64 … "c": Boolean}] at ...>
-
         """
         return wrap_ldf(self._df.lazy())
 
@@ -7997,7 +7912,6 @@ class DataFrame:
         │ {0,1}     │
         │ {1,0}     │
         └───────────┘
-
         """
         return self.lazy().select(*exprs, **named_exprs).collect(_eager=True)
 
@@ -8023,7 +7937,6 @@ class DataFrame:
         See Also
         --------
         select
-
         """
         return self.lazy().select_seq(*exprs, **named_exprs).collect(_eager=True)
 
@@ -8172,7 +8085,6 @@ class DataFrame:
         │ 3   ┆ 10.0 ┆ {1,6.0}     │
         │ 4   ┆ 13.0 ┆ {1,3.0}     │
         └─────┴──────┴─────────────┘
-
         """
         return self.lazy().with_columns(*exprs, **named_exprs).collect(_eager=True)
 
@@ -8207,7 +8119,6 @@ class DataFrame:
         See Also
         --------
         with_columns
-
         """
         return self.lazy().with_columns_seq(*exprs, **named_exprs).collect(_eager=True)
 
@@ -8243,7 +8154,6 @@ class DataFrame:
         1
         >>> df.n_chunks(strategy="all")
         [1, 1, 1]
-
         """
         if strategy == "first":
             return self._df.n_chunks()
@@ -8299,7 +8209,6 @@ class DataFrame:
         ╞═════╪═════╪═════╡
         │ 3   ┆ 8   ┆ c   │
         └─────┴─────┴─────┘
-
         """
         if axis is not None:
             issue_deprecation_warning(
@@ -8388,7 +8297,6 @@ class DataFrame:
         ╞═════╪═════╪═════╡
         │ 1   ┆ 6   ┆ a   │
         └─────┴─────┴─────┘
-
         """
         if axis is not None:
             issue_deprecation_warning(
@@ -8726,7 +8634,6 @@ class DataFrame:
         ╞══════════╪══════════╪══════╡
         │ 0.816497 ┆ 0.816497 ┆ null │
         └──────────┴──────────┴──────┘
-
         """
         return self.lazy().std(ddof).collect(_eager=True)  # type: ignore[return-value]
 
@@ -8768,7 +8675,6 @@ class DataFrame:
         ╞══════════╪══════════╪══════╡
         │ 0.666667 ┆ 0.666667 ┆ null │
         └──────────┴──────────┴──────┘
-
         """
         return self.lazy().var(ddof).collect(_eager=True)  # type: ignore[return-value]
 
@@ -8794,7 +8700,6 @@ class DataFrame:
         ╞═════╪═════╪══════╡
         │ 2.0 ┆ 7.0 ┆ null │
         └─────┴─────┴──────┘
-
         """
         return self.lazy().median().collect(_eager=True)  # type: ignore[return-value]
 
@@ -8821,7 +8726,6 @@ class DataFrame:
         ╞═════╪══════╪═════╡
         │ 6   ┆ 20.0 ┆ 0   │
         └─────┴──────┴─────┘
-
         """
         exprs = []
         for name, dt in self.schema.items():
@@ -8863,7 +8767,6 @@ class DataFrame:
         ╞═════╪═════╪══════╡
         │ 2.0 ┆ 7.0 ┆ null │
         └─────┴─────┴──────┘
-
         """
         return self.lazy().quantile(quantile, interpolation).collect(_eager=True)  # type: ignore[return-value]
 
@@ -8940,7 +8843,6 @@ class DataFrame:
         │ 0     ┆ 0     ┆ a   │
         │ 1     ┆ 1     ┆ b   │
         └───────┴───────┴─────┘
-
         """
         if columns is not None:
             columns = _expand_selectors(self, columns)
@@ -9025,7 +8927,6 @@ class DataFrame:
         │ 3   ┆ a   ┆ b   │
         │ 1   ┆ a   ┆ b   │
         └─────┴─────┴─────┘
-
         """
         return (
             self.lazy()
@@ -9087,7 +8988,6 @@ class DataFrame:
         ...     ],
         ... )
         3
-
         """
         if isinstance(subset, str):
             expr = F.col(subset)
@@ -9125,7 +9025,6 @@ class DataFrame:
         ╞═════╪═════╡
         │ 4   ┆ 2   │
         └─────┴─────┘
-
         """
         return self.lazy().approx_n_unique().collect(_eager=True)
 
@@ -9160,7 +9059,6 @@ class DataFrame:
         ╞═════╪═════╪═════╡
         │ 1   ┆ 1   ┆ 0   │
         └─────┴─────┴─────┘
-
         """
         return self._from_pydf(self._df.null_count())
 
@@ -9212,7 +9110,6 @@ class DataFrame:
         │ 3   ┆ 8   ┆ c   │
         │ 2   ┆ 7   ┆ b   │
         └─────┴─────┴─────┘
-
         """
         if n is not None and fraction is not None:
             raise ValueError("cannot specify both `n` and `fraction`")
@@ -9322,7 +9219,6 @@ class DataFrame:
         ----------
         operation
             function that takes two `Series` and returns a `Series`.
-
         """
         acc = self.to_series(0)
 
@@ -9419,7 +9315,6 @@ class DataFrame:
 
         >>> df.row(by_predicate=(pl.col("ham") == "b"))
         (2, 7, 'b')
-
         """
         if index is not None and by_predicate is not None:
             raise ValueError(
@@ -9521,7 +9416,6 @@ class DataFrame:
          {'x': 'b', 'y': 2, 'z': 3},
          {'x': 'b', 'y': 3, 'z': 6},
          {'x': 'a', 'y': 4, 'z': 9}]
-
         """
         if named:
             # Load these into the local namespace for a minor performance boost
@@ -9626,7 +9520,6 @@ class DataFrame:
              ('b', 'q'): [{'w': 'b', 'x': 'q', 'y': 2.5, 'z': 8},
                           {'w': 'b', 'x': 'q', 'y': 3.0, 'z': 7}],
              ('a', 'k'): [{'w': 'a', 'x': 'k', 'y': 4.5, 'z': 6}]})
-
         """
         from polars.selectors import expand_selector, is_selector
 
@@ -9758,7 +9651,6 @@ class DataFrame:
         [1, 3, 5]
         >>> [row["b"] for row in df.iter_rows(named=True)]
         [2, 4, 6]
-
         """
         # load into the local namespace for a (minor) performance boost in the hot loops
         columns, get_row, dict_, zip_ = self.columns, self.row, dict, zip
@@ -9833,7 +9725,6 @@ class DataFrame:
         │ 6   ┆ 8   │
         │ 10  ┆ 12  │
         └─────┴─────┘
-
         """
         return (wrap_s(s) for s in self._df.get_columns())
 
@@ -9881,7 +9772,6 @@ class DataFrame:
         --------
         iter_rows : Row iterator over frame data (does not materialise all rows).
         partition_by : Split into multiple DataFrames, partitioned by groups.
-
         """
         for offset in range(0, self.height, n_rows):
             yield self.slice(offset, n_rows)
@@ -9891,7 +9781,6 @@ class DataFrame:
         Shrink DataFrame memory usage.
 
         Shrinks to fit the exact capacity needed to hold the data.
-
         """
         if in_place:
             self._df.shrink_to_fit()
@@ -9923,7 +9812,6 @@ class DataFrame:
         │ 1   ┆ 5   │
         │ 3   ┆ 7   │
         └─────┴─────┘
-
         """
         return self.select(F.col("*").gather_every(n))
 
@@ -9973,7 +9861,6 @@ class DataFrame:
             10047419486152048166
             2047317070637311557
         ]
-
         """
         k0 = seed
         k1 = seed_1 if seed_1 is not None else seed
@@ -10006,7 +9893,6 @@ class DataFrame:
         │ 9.0  ┆ 9.0  ┆ 6.333333 │
         │ 10.0 ┆ null ┆ 9.0      │
         └──────┴──────┴──────────┘
-
         """
         return self.select(F.col("*").interpolate())
 
@@ -10021,7 +9907,6 @@ class DataFrame:
         False
         >>> df.filter(pl.col("foo") > 99).is_empty()
         True
-
         """
         return self.height == 0
 
@@ -10052,7 +9937,6 @@ class DataFrame:
             {4,"four"}
             {5,"five"}
         ]
-
         """
         return wrap_s(self._df.to_struct(name))
 
@@ -10106,7 +9990,6 @@ class DataFrame:
         │ foo    ┆ 1   ┆ a   ┆ true ┆ [1, 2]    ┆ baz   │
         │ bar    ┆ 2   ┆ b   ┆ null ┆ [3]       ┆ womp  │
         └────────┴─────┴─────┴──────┴───────────┴───────┘
-
         """
         columns = _expand_selectors(self, columns, *more_columns)
         return self._from_pydf(self._df.unnest(columns))
@@ -10141,7 +10024,6 @@ class DataFrame:
         │ -1.0 ┆ 1.0  ┆ -1.0 │
         │ 1.0  ┆ -1.0 ┆ 1.0  │
         └──────┴──────┴──────┘
-
         """
         return DataFrame(np.corrcoef(self.to_numpy().T, **kwargs), schema=self.columns)
 
@@ -10374,7 +10256,6 @@ class DataFrame:
         │ 4   ┆ 700  │
         │ 5   ┆ -66  │
         └─────┴──────┘
-
         """
         return (
             self.lazy()
@@ -10444,7 +10325,6 @@ class DataFrame:
         -------
         GroupBy
             Object which can be used to perform aggregations.
-
         """
         return self.group_by(by, *more_by, maintain_order=maintain_order)
 
@@ -10490,7 +10370,6 @@ class DataFrame:
             verify data is sorted. This is expensive. If you are sure the
             data within the by groups is sorted, you can set this to `False`.
             Doing so incorrectly will lead to incorrect output
-
         """
         return self.rolling(
             index_column,
@@ -10543,7 +10422,6 @@ class DataFrame:
             verify data is sorted. This is expensive. If you are sure the
             data within the by groups is sorted, you can set this to `False`.
             Doing so incorrectly will lead to incorrect output
-
         """
         return self.rolling(
             index_column,
@@ -10629,7 +10507,6 @@ class DataFrame:
             Object you can call `.agg` on to aggregate by groups, the result
             of which will be sorted by `index_column` (but note that if `by` columns are
             passed, it will only be sorted within each `by` group).
-
         """  # noqa: W505
         return self.group_by_dynamic(
             index_column,
@@ -10667,7 +10544,6 @@ class DataFrame:
         inference_size
             Only used in the case when the custom function returns rows.
             This uses the first `n` rows to determine the output schema
-
         """
         return self.map_rows(function, return_dtype, inference_size=inference_size)
 
@@ -10691,7 +10567,6 @@ class DataFrame:
             fill None values with this value.
         n
             Number of places to shift (may be negative).
-
         """
         return self.shift(n, fill_value=fill_value)
 
