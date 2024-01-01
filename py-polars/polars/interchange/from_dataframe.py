@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import polars._reexport as pl
 import polars.functions as F
-from polars.datatypes import Boolean, Int64, UInt8
+from polars.datatypes import Boolean, Int64, String, UInt8
 from polars.interchange.dataframe import PolarsDataFrame
 from polars.interchange.protocol import ColumnNullType, CopyNotAllowedError
 from polars.interchange.utils import (
@@ -58,7 +58,8 @@ def _protocol_df_chunk_to_polars(
     df: InterchangeDataFrame, *, allow_copy: bool = True
 ) -> DataFrame:
     columns = [
-        _column_to_series(column, allow_copy=allow_copy) for column in df.get_columns()
+        _column_to_series(column, allow_copy=allow_copy).alias(name)
+        for column, name in zip(df.get_columns(), df.column_names())
     ]
     return pl.DataFrame(columns)
 
@@ -70,7 +71,10 @@ def _column_to_series(column: Column, *, allow_copy: bool = True) -> Series:
     offset = column.offset
 
     # First construct the Series without a validity buffer
-    data_buffer = _construct_data_buffer(*buffers["data"], column.size(), offset)
+    buffer, dtype = buffers["data"]
+    length = buffer.bufsize if polars_dtype == String else column.size()
+    data_buffer = _construct_data_buffer(buffer, dtype, length, offset)
+
     offsets_buffer = _construct_offsets_buffer(
         buffers["offsets"], offset, allow_copy=allow_copy
     )
