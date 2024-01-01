@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -8,11 +10,16 @@ import polars as pl
 import polars.interchange.from_dataframe
 from polars.interchange.buffer import PolarsBuffer
 from polars.interchange.from_dataframe import (
+    _construct_data_buffer,
+    _construct_offsets_buffer,
+    _construct_validity_buffer,
     _construct_validity_buffer_from_bitmask,
     _construct_validity_buffer_from_bytemask,
 )
-from polars.interchange.protocol import CopyNotAllowedError
+from polars.interchange.protocol import CopyNotAllowedError, DtypeKind, Endianness
 from polars.testing import assert_frame_equal, assert_series_equal
+
+NE = Endianness.NATIVE
 
 # def test_from_dataframe_polars() -> None:
 #     df = pl.DataFrame({"a": [1, 2], "b": [3.0, 4.0], "c": ["foo", "bar"]})
@@ -100,6 +107,68 @@ from polars.testing import assert_frame_equal, assert_series_equal
 #     assert_frame_equal(result, df)
 
 
+def test_construct_data_buffer() -> None:
+    data = pl.Series([0, 1, 3, 3, 9], dtype=pl.Int64)
+    buffer = PolarsBuffer(data)
+    dtype = (DtypeKind.INT, 64, "l", NE)
+
+    result = _construct_data_buffer(buffer, dtype, length=5)
+    assert_series_equal(result, data)
+
+
+def test_construct_data_buffer_boolean_sliced() -> None:
+    data = pl.Series([False, True, True, False])
+    data_sliced = data[2:]
+    buffer = PolarsBuffer(data_sliced)
+    dtype = (DtypeKind.BOOL, 1, "b", NE)
+
+    result = _construct_data_buffer(buffer, dtype, length=2, offset=2)
+    assert_series_equal(result, data_sliced)
+
+
+def test_construct_data_buffer_logical_dtype() -> None:
+    data = pl.Series([0, 1, 3, 3, 9], dtype=pl.UInt32)
+    # data = pl.Series([date(2023, 12, 31), date(2024, 1, 1)], dtype=pl.Date)
+    buffer = PolarsBuffer(data)
+    dtype = (DtypeKind.DATETIME, 32, "tdD", NE)
+
+    result = _construct_data_buffer(buffer, dtype, length=5)
+    assert_series_equal(result, data)
+
+
+def test_construct_offsets_buffer() -> None:
+    data = pl.Series([0, 1, 3, 3, 9], dtype=pl.Int64)
+    buffer = PolarsBuffer(data)
+    dtype = (DtypeKind.INT, 64, "l", NE)
+    offsets_buffer_info = (buffer, dtype)
+
+    result = _construct_offsets_buffer(offsets_buffer_info)
+    assert_series_equal(result, data)
+
+
+def test_construct_offsets_buffer_copy() -> None:
+    data = pl.Series([0, 1, 3, 3, 9], dtype=pl.UInt32)
+    buffer = PolarsBuffer(data)
+    dtype = (DtypeKind.UINT, 32, "I", NE)
+    offsets_buffer_info = (buffer, dtype)
+
+    with pytest.raises(CopyNotAllowedError):
+        _construct_offsets_buffer(offsets_buffer_info, allow_copy=False)
+
+    result = _construct_offsets_buffer(offsets_buffer_info)
+    expected = pl.Series([0, 1, 3, 3, 9], dtype=pl.Int64)
+    assert_series_equal(result, expected)
+
+
+def test_construct_offsets_buffer_none() -> None:
+    result = _construct_offsets_buffer(None)
+    assert result is None
+
+
+def test_construct_validity_buffer() -> None:
+    pass
+
+
 @pytest.fixture()
 def bitmask() -> PolarsBuffer:
     data = pl.Series([False, True, True, False])
@@ -128,11 +197,9 @@ def test_construct_validity_buffer_from_bitmask_inverted(bitmask: PolarsBuffer) 
 def test_construct_validity_buffer_from_bitmask_zero_copy_fails(
     bitmask: PolarsBuffer,
 ) -> None:
-    data = pl.Series([0, 1, 1, 0], dtype=pl.UInt8)
-    buffer = PolarsBuffer(data)
     with pytest.raises(CopyNotAllowedError):
         _construct_validity_buffer_from_bitmask(
-            buffer, null_value=1, offset=0, length=4, allow_copy=False
+            bitmask, null_value=1, offset=0, length=4, allow_copy=False
         )
 
 

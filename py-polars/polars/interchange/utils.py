@@ -141,7 +141,7 @@ def _temporal_dtype_to_polars_dtype(format_str: str) -> PolarsDataType:
     raise NotImplementedError(f"unsupported temporal data type: {format_str!r}")
 
 
-def get_buffer_size_in_elements(buffer: Buffer, dtype: Dtype) -> int:
+def get_buffer_length_in_elements(buffer: Buffer, dtype: Dtype) -> int:
     """Get the length of a buffer in elements."""
     bits_per_element = dtype[1]
     bytes_per_element, rest = divmod(bits_per_element, 8)

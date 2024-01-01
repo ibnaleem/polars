@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 from typing import TYPE_CHECKING
 
 import polars._reexport as pl
@@ -8,11 +7,10 @@ import polars.functions as F
 from polars.datatypes import Boolean, Int64, UInt8
 from polars.interchange.dataframe import PolarsDataFrame
 from polars.interchange.protocol import ColumnNullType, CopyNotAllowedError
-from polars.interchange.utils import dtype_to_polars_dtype, get_buffer_size_in_elements
-from polars.utils._wrap import wrap_s
-
-with contextlib.suppress(ImportError):  # Module not available when building docs
-    from polars.polars import PySeries
+from polars.interchange.utils import (
+    dtype_to_polars_dtype,
+    get_buffer_length_in_elements,
+)
 
 if TYPE_CHECKING:
     from polars import DataFrame, Series
@@ -75,8 +73,8 @@ def _column_to_series(column: Column, *, allow_copy: bool = True) -> Series:
         buffers["offsets"], offset, allow_copy=allow_copy
     )
 
-    data = wrap_s(
-        PySeries.from_buffers(polars_dtype, data_buffer, None, offsets_buffer)
+    data = pl.Series._from_buffers(
+        polars_dtype, data=[data_buffer, offsets_buffer], validity=None
     )
 
     validity_buffer = _construct_validity_buffer(
@@ -87,42 +85,45 @@ def _column_to_series(column: Column, *, allow_copy: bool = True) -> Series:
         allow_copy=allow_copy,
     )
 
-    s = wrap_s(
-        PySeries.from_buffers(
-            polars_dtype, data_buffer, validity_buffer, offsets_buffer
-        )
+    s = pl.Series._from_buffers(
+        polars_dtype, data=[data_buffer, offsets_buffer], validity=validity_buffer
     )
-    setattr(s, "__INTERCHANGE_BUFFERS", buffers)  # Keep buffers alive
 
     return s
 
 
 def _construct_data_buffer(
-    buffer: Buffer, dtype: Dtype, size: int, offset: int
+    buffer: Buffer, dtype: Dtype, length: int, offset: int = 0
 ) -> Series:
     # This requires the data buffer to have the correct dtype
     # See: https://github.com/pola-rs/polars/pull/10787
     polars_physical_dtype = dtype_to_polars_dtype(dtype)
-    return wrap_s(PySeries.from_buffer(polars_physical_dtype, buffer.ptr, size, offset))
+    buffer_info = (buffer.ptr, offset, length)
+    return pl.Series._from_buffer(polars_physical_dtype, buffer_info, owner=buffer)
 
 
 def _construct_offsets_buffer(
-    buffer_info: tuple[Buffer, Dtype] | None, offset: int, *, allow_copy: bool = True
+    offsets_buffer_info: tuple[Buffer, Dtype] | None,
+    offset: int = 0,
+    *,
+    allow_copy: bool = True,
 ) -> Series | None:
-    if buffer_info is None:
+    if offsets_buffer_info is None:
         return None
 
-    buffer, dtype = buffer_info
-    polars_physical_dtype = dtype_to_polars_dtype(dtype)
+    buffer, dtype = offsets_buffer_info
 
-    size = get_buffer_size_in_elements(buffer, dtype)
-    s = wrap_s(PySeries.from_buffer(polars_physical_dtype, buffer.ptr, size, offset))
+    polars_dtype = dtype_to_polars_dtype(dtype)
+    length = get_buffer_length_in_elements(buffer, dtype)
+    buffer_info = (buffer.ptr, offset, length)
+
+    s = pl.Series._from_buffer(polars_dtype, buffer_info, owner=buffer)
 
     # Polars only supports Int64 offsets
-    if polars_physical_dtype != Int64:
+    if polars_dtype != Int64:
         if not allow_copy:
             raise CopyNotAllowedError(
-                f"offset buffer must be cast from {polars_physical_dtype} to Int64"
+                f"offset buffer must be cast from {polars_dtype} to Int64"
             )
         s = s.cast(Int64)
 
