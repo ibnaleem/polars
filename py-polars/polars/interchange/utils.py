@@ -103,7 +103,7 @@ dtype_to_polars_dtype_map: dict[DtypeKind, dict[int, DataTypeClass]] = {
         64: Float64,
     },
     DtypeKind.BOOL: {1: Boolean},
-    DtypeKind.STRING: {8: Utf8},
+    DtypeKind.STRING: {8: String},
 }
 
 
