@@ -26,7 +26,10 @@ from polars.datatypes import (
 from polars.interchange.protocol import DtypeKind, Endianness
 
 if TYPE_CHECKING:
-    from polars.datatypes import DataTypeClass
+    from polars.datatypes import (
+        DataType,
+        DataTypeClass,
+    )
     from polars.interchange.protocol import Buffer, Dtype
     from polars.type_aliases import PolarsDataType
 
@@ -85,36 +88,37 @@ def _duration_to_dtype(dtype: Duration) -> Dtype:
     return DtypeKind.DATETIME, 64, arrow_c_type, NE
 
 
-dtype_to_polars_dtype_map: dict[DtypeKind, dict[int, DataTypeClass]] = {
+dtype_to_polars_dtype_map: dict[DtypeKind, dict[int, DataType]] = {
     DtypeKind.INT: {
-        8: Int8,
-        16: Int16,
-        32: Int32,
-        64: Int64,
+        8: Int8(),
+        16: Int16(),
+        32: Int32(),
+        64: Int64(),
     },
     DtypeKind.UINT: {
-        8: UInt8,
-        16: UInt16,
-        32: UInt32,
-        64: UInt64,
+        8: UInt8(),
+        16: UInt16(),
+        32: UInt32(),
+        64: UInt64(),
     },
     DtypeKind.FLOAT: {
-        32: Float32,
-        64: Float64,
+        32: Float32(),
+        64: Float64(),
     },
-    DtypeKind.BOOL: {1: Boolean},
-    DtypeKind.STRING: {8: String},
+    DtypeKind.BOOL: {1: Boolean()},
+    DtypeKind.STRING: {8: String()},
 }
 
 
-def dtype_to_polars_dtype(dtype: Dtype) -> PolarsDataType:
+def dtype_to_polars_dtype(dtype: Dtype) -> DataType:
     """Convert interchange protocol data type to Polars data type."""
     kind, bit_width, format_str, _ = dtype
 
     if kind == DtypeKind.DATETIME:
         return _temporal_dtype_to_polars_dtype(format_str)
     elif kind == DtypeKind.CATEGORICAL:
-        return Categorical
+        # TODO: Ordering / Enum
+        return Categorical()
 
     try:
         return dtype_to_polars_dtype_map[kind][bit_width]
@@ -131,14 +135,28 @@ def _temporal_dtype_to_polars_dtype(format_str: str) -> PolarsDataType:
             time_zone=time_zone,
         )
     elif format_str == "tdD":
-        return Date
+        return Date()
     elif format_str == "ttu":
-        return Time
+        return Time()
     elif (match := re.fullmatch(r"tD([mun])", format_str)) is not None:
         time_unit = match.group(1)
         return Duration(time_unit=time_unit)  # type: ignore[arg-type]
 
     raise NotImplementedError(f"unsupported temporal data type: {format_str!r}")
+
+
+def polars_dtype_to_data_buffer_dtype(dtype: DataType) -> DataType:
+    """Get the data type of the data buffer."""
+    if dtype.is_integer() or dtype.is_float() or dtype == Boolean:
+        return dtype
+    elif dtype.is_temporal():
+        return Int32() if dtype == Date else Int64()
+    elif dtype == String:
+        return UInt8()
+    elif dtype == Categorical:
+        return UInt32()
+
+    raise NotImplementedError(f"unsupported data type: {dtype}")
 
 
 def get_buffer_length_in_elements(buffer: Buffer, dtype: Dtype) -> int:

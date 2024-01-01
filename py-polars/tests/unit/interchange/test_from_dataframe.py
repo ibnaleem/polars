@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pyarrow as pa
@@ -9,6 +10,7 @@ import pytest
 import polars as pl
 import polars.interchange.from_dataframe
 from polars.interchange.buffer import PolarsBuffer
+from polars.interchange.column import PolarsColumn
 from polars.interchange.from_dataframe import (
     _construct_data_buffer,
     _construct_offsets_buffer,
@@ -16,7 +18,12 @@ from polars.interchange.from_dataframe import (
     _construct_validity_buffer_from_bitmask,
     _construct_validity_buffer_from_bytemask,
 )
-from polars.interchange.protocol import CopyNotAllowedError, DtypeKind, Endianness
+from polars.interchange.protocol import (
+    ColumnNullType,
+    CopyNotAllowedError,
+    DtypeKind,
+    Endianness,
+)
 from polars.testing import assert_frame_equal, assert_series_equal
 
 NE = Endianness.NATIVE
@@ -127,12 +134,11 @@ def test_construct_data_buffer_boolean_sliced() -> None:
 
 
 def test_construct_data_buffer_logical_dtype() -> None:
-    data = pl.Series([0, 1, 3, 3, 9], dtype=pl.UInt32)
-    # data = pl.Series([date(2023, 12, 31), date(2024, 1, 1)], dtype=pl.Date)
+    data = pl.Series([100, 200, 300], dtype=pl.Int32)
     buffer = PolarsBuffer(data)
     dtype = (DtypeKind.DATETIME, 32, "tdD", NE)
 
-    result = _construct_data_buffer(buffer, dtype, length=5)
+    result = _construct_data_buffer(buffer, dtype, length=3)
     assert_series_equal(result, data)
 
 
@@ -165,14 +171,112 @@ def test_construct_offsets_buffer_none() -> None:
     assert result is None
 
 
-def test_construct_validity_buffer() -> None:
-    pass
-
-
 @pytest.fixture()
 def bitmask() -> PolarsBuffer:
     data = pl.Series([False, True, True, False])
     return PolarsBuffer(data)
+
+
+@pytest.fixture()
+def bytemask() -> PolarsBuffer:
+    data = pl.Series([0, 1, 1, 0], dtype=pl.UInt8)
+    return PolarsBuffer(data)
+
+
+class PatchableColumn(PolarsColumn):
+    """Helper class that allows patching certain PolarsColumn properties."""
+
+    describe_null = (ColumnNullType.USE_BITMASK, 0)
+    null_count = 0
+
+
+def test_construct_validity_buffer_non_nullable() -> None:
+    s = pl.Series([1, 2, 3])
+
+    col = PatchableColumn(s)
+    col.describe_null = (ColumnNullType.NON_NULLABLE, None)
+    col.null_count = 1
+
+    result = _construct_validity_buffer(None, col, s)
+    assert result is None
+
+
+def test_construct_validity_buffer_null_count() -> None:
+    s = pl.Series([1, 2, 3])
+
+    col = PatchableColumn(s)
+    col.describe_null = (ColumnNullType.USE_SENTINEL, -1)
+    col.null_count = 0
+
+    result = _construct_validity_buffer(None, col, s)
+    assert result is None
+
+
+def test_construct_validity_buffer_use_bitmask(bitmask: PolarsBuffer) -> None:
+    s = pl.Series([1, 2, 3, 4])
+
+    col = PatchableColumn(s)
+    col.describe_null = (ColumnNullType.USE_BITMASK, 0)
+    col.null_count = 2
+
+    dtype = (DtypeKind.BOOL, 1, "b", NE)
+    validity_buffer_info = (bitmask, dtype)
+
+    result = _construct_validity_buffer(validity_buffer_info, col, s)
+    expected = pl.Series([False, True, True, False])
+    assert_series_equal(result, expected)
+
+    result = _construct_validity_buffer(None, col, s)
+    assert result is None
+
+
+def test_construct_validity_buffer_use_bytemask(bytemask: PolarsBuffer) -> None:
+    s = pl.Series([1, 2, 3, 4])
+
+    col = PatchableColumn(s)
+    col.describe_null = (ColumnNullType.USE_BYTEMASK, 0)
+    col.null_count = 2
+
+    dtype = (DtypeKind.UINT, 8, "C", NE)
+    validity_buffer_info = (bytemask, dtype)
+
+    result = _construct_validity_buffer(validity_buffer_info, col, s)
+    expected = pl.Series([False, True, True, False])
+    assert_series_equal(result, expected)
+
+    result = _construct_validity_buffer(None, col, s)
+    assert result is None
+
+
+def test_construct_validity_buffer_use_nan() -> None:
+    s = pl.Series([1.0, 2.0, float("nan")])
+
+    col = PatchableColumn(s)
+    col.describe_null = (ColumnNullType.USE_NAN, None)
+    col.null_count = 1
+
+    result = _construct_validity_buffer(None, col, s)
+    expected = pl.Series([True, True, False])
+    assert_series_equal(result, expected)
+
+    with pytest.raises(CopyNotAllowedError, match="bitmask must be constructed"):
+        _construct_validity_buffer(None, col, s, allow_copy=False)
+
+
+def test_construct_validity_buffer_use_sentinel() -> None:
+    s = pl.Series(["a", "bc", "NULL"])
+
+    col = PatchableColumn(s)
+    null = (ColumnNullType.USE_SENTINEL, "NULL")
+    col.describe_null = null
+    col.null_count = 1
+
+    result = _construct_validity_buffer(None, col, s)
+    expected = pl.Series([True, True, False])
+    assert_series_equal(result, expected)
+
+    with pytest.raises(CopyNotAllowedError, match="bitmask must be constructed"):
+        _construct_validity_buffer(None, col, s, allow_copy=False)
 
 
 @pytest.mark.parametrize("allow_copy", [True, False])
@@ -212,12 +316,6 @@ def test_construct_validity_buffer_from_bitmask_sliced() -> None:
         bitmask, null_value=0, offset=2, length=2
     )
     assert_series_equal(result, data_sliced)
-
-
-@pytest.fixture()
-def bytemask() -> PolarsBuffer:
-    data = pl.Series([0, 1, 1, 0], dtype=pl.UInt8)
-    return PolarsBuffer(data)
 
 
 def test_construct_validity_buffer_from_bytemask(bytemask: PolarsBuffer) -> None:

@@ -10,6 +10,7 @@ from polars.interchange.protocol import ColumnNullType, CopyNotAllowedError
 from polars.interchange.utils import (
     dtype_to_polars_dtype,
     get_buffer_length_in_elements,
+    polars_dtype_to_data_buffer_dtype,
 )
 
 if TYPE_CHECKING:
@@ -68,38 +69,46 @@ def _column_to_series(column: Column, *, allow_copy: bool = True) -> Series:
     buffers = column.get_buffers()
     offset = column.offset
 
+    # First construct the Series without a validity buffer
     data_buffer = _construct_data_buffer(*buffers["data"], column.size(), offset)
     offsets_buffer = _construct_offsets_buffer(
         buffers["offsets"], offset, allow_copy=allow_copy
     )
 
-    data = pl.Series._from_buffers(
-        polars_dtype, data=[data_buffer, offsets_buffer], validity=None
-    )
+    if offsets_buffer is None:
+        data_buffers = [data_buffer]
+    else:
+        data_buffers = [data_buffer, offsets_buffer]
 
+    result = pl.Series._from_buffers(polars_dtype, data=data_buffers, validity=None)
+
+    # Add the validity buffer if present
     validity_buffer = _construct_validity_buffer(
-        column,
         buffers["validity"],
-        data,
+        column,
+        result,
         offset,
         allow_copy=allow_copy,
     )
+    if validity_buffer is not None:
+        result = pl.Series._from_buffers(
+            polars_dtype, data=data_buffers, validity=validity_buffer
+        )
 
-    s = pl.Series._from_buffers(
-        polars_dtype, data=[data_buffer, offsets_buffer], validity=validity_buffer
-    )
-
-    return s
+    return result
 
 
 def _construct_data_buffer(
     buffer: Buffer, dtype: Dtype, length: int, offset: int = 0
 ) -> Series:
-    # This requires the data buffer to have the correct dtype
-    # See: https://github.com/pola-rs/polars/pull/10787
-    polars_physical_dtype = dtype_to_polars_dtype(dtype)
+    polars_dtype = dtype_to_polars_dtype(dtype)
+
+    # TODO: Remove the line below when backward compatibility is no longer required
+    # https://github.com/pola-rs/polars/pull/10787
+    polars_dtype = polars_dtype_to_data_buffer_dtype(polars_dtype)
+
     buffer_info = (buffer.ptr, offset, length)
-    return pl.Series._from_buffer(polars_physical_dtype, buffer_info, owner=buffer)
+    return pl.Series._from_buffer(polars_dtype, buffer_info, owner=buffer)
 
 
 def _construct_offsets_buffer(
@@ -131,10 +140,10 @@ def _construct_offsets_buffer(
 
 
 def _construct_validity_buffer(
-    column: Column,
     validity_buffer_info: tuple[Buffer, Dtype] | None,
-    data_buffer: Series,
-    offset: int,
+    column: Column,
+    data: Series,
+    offset: int = 0,
     *,
     allow_copy: bool = True,
 ) -> Series | None:
@@ -147,7 +156,7 @@ def _construct_validity_buffer(
             return None
         buffer = validity_buffer_info[0]
         return _construct_validity_buffer_from_bitmask(
-            buffer, column.size(), null_value, offset, allow_copy=allow_copy
+            buffer, null_value, column.size(), offset, allow_copy=allow_copy
         )
 
     elif null_type == ColumnNullType.USE_BYTEMASK:
@@ -161,12 +170,12 @@ def _construct_validity_buffer(
     elif null_type == ColumnNullType.USE_NAN:
         if not allow_copy:
             raise CopyNotAllowedError("bitmask must be constructed")
-        return data_buffer.is_not_nan()
+        return data.is_not_nan()
 
     elif null_type == ColumnNullType.USE_SENTINEL:
         if not allow_copy:
             raise CopyNotAllowedError("bitmask must be constructed")
-        return data_buffer != null_value
+        return data != null_value
 
     else:
         raise NotImplementedError(f"unsupported null type: {null_type!r}")
@@ -175,8 +184,8 @@ def _construct_validity_buffer(
 def _construct_validity_buffer_from_bitmask(
     buffer: Buffer,
     null_value: int,
-    offset: int,
     length: int,
+    offset: int = 0,
     *,
     allow_copy: bool = True,
 ) -> Series:
