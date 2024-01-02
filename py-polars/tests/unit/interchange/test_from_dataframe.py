@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -139,9 +141,8 @@ def test_construct_offsets_buffer() -> None:
     data = pl.Series([0, 1, 3, 3, 9], dtype=pl.Int64)
     buffer = PolarsBuffer(data)
     dtype = (DtypeKind.INT, 64, "l", NE)
-    offsets_buffer_info = (buffer, dtype)
 
-    result = _construct_offsets_buffer(offsets_buffer_info)
+    result = _construct_offsets_buffer(buffer, dtype)
     assert_series_equal(result, data)
 
 
@@ -149,19 +150,13 @@ def test_construct_offsets_buffer_copy() -> None:
     data = pl.Series([0, 1, 3, 3, 9], dtype=pl.UInt32)
     buffer = PolarsBuffer(data)
     dtype = (DtypeKind.UINT, 32, "I", NE)
-    offsets_buffer_info = (buffer, dtype)
 
     with pytest.raises(CopyNotAllowedError):
-        _construct_offsets_buffer(offsets_buffer_info, allow_copy=False)
+        _construct_offsets_buffer(buffer, dtype, allow_copy=False)
 
-    result = _construct_offsets_buffer(offsets_buffer_info)
+    result = _construct_offsets_buffer(buffer, dtype)
     expected = pl.Series([0, 1, 3, 3, 9], dtype=pl.Int64)
     assert_series_equal(result, expected)
-
-
-def test_construct_offsets_buffer_none() -> None:
-    result = _construct_offsets_buffer(None)
-    assert result is None
 
 
 @pytest.fixture()
@@ -179,7 +174,7 @@ def bytemask() -> PolarsBuffer:
 class PatchableColumn(PolarsColumn):
     """Helper class that allows patching certain PolarsColumn properties."""
 
-    describe_null = (ColumnNullType.USE_BITMASK, 0)
+    describe_null: tuple[ColumnNullType, Any] = (ColumnNullType.USE_BITMASK, 0)
     null_count = 0
 
 
@@ -217,7 +212,7 @@ def test_construct_validity_buffer_use_bitmask(bitmask: PolarsBuffer) -> None:
 
     result = _construct_validity_buffer(validity_buffer_info, col, s)
     expected = pl.Series([False, True, True, False])
-    assert_series_equal(result, expected)
+    assert_series_equal(result, expected)  # type: ignore[arg-type]
 
     result = _construct_validity_buffer(None, col, s)
     assert result is None
@@ -235,7 +230,7 @@ def test_construct_validity_buffer_use_bytemask(bytemask: PolarsBuffer) -> None:
 
     result = _construct_validity_buffer(validity_buffer_info, col, s)
     expected = pl.Series([False, True, True, False])
-    assert_series_equal(result, expected)
+    assert_series_equal(result, expected)  # type: ignore[arg-type]
 
     result = _construct_validity_buffer(None, col, s)
     assert result is None
@@ -250,7 +245,7 @@ def test_construct_validity_buffer_use_nan() -> None:
 
     result = _construct_validity_buffer(None, col, s)
     expected = pl.Series([True, True, False])
-    assert_series_equal(result, expected)
+    assert_series_equal(result, expected)  # type: ignore[arg-type]
 
     with pytest.raises(CopyNotAllowedError, match="bitmask must be constructed"):
         _construct_validity_buffer(None, col, s, allow_copy=False)
@@ -266,7 +261,7 @@ def test_construct_validity_buffer_use_sentinel() -> None:
 
     result = _construct_validity_buffer(None, col, s)
     expected = pl.Series([True, True, False])
-    assert_series_equal(result, expected)
+    assert_series_equal(result, expected)  # type: ignore[arg-type]
 
     with pytest.raises(CopyNotAllowedError, match="bitmask must be constructed"):
         _construct_validity_buffer(None, col, s, allow_copy=False)

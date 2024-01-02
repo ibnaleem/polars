@@ -26,10 +26,7 @@ from polars.datatypes import (
 from polars.interchange.protocol import DtypeKind, Endianness
 
 if TYPE_CHECKING:
-    from polars.datatypes import (
-        DataType,
-        DataTypeClass,
-    )
+    from polars.datatypes import DataTypeClass
     from polars.interchange.protocol import Buffer, Dtype
     from polars.type_aliases import PolarsDataType
 
@@ -88,7 +85,7 @@ def _duration_to_dtype(dtype: Duration) -> Dtype:
     return DtypeKind.DATETIME, 64, arrow_c_type, NE
 
 
-dtype_to_polars_dtype_map: dict[DtypeKind, dict[int, DataType]] = {
+dtype_to_polars_dtype_map: dict[DtypeKind, dict[int, PolarsDataType]] = {
     DtypeKind.INT: {
         8: Int8,
         16: Int16,
@@ -144,7 +141,7 @@ def _temporal_dtype_to_polars_dtype(format_str: str) -> PolarsDataType:
     raise NotImplementedError(f"unsupported temporal data type: {format_str!r}")
 
 
-def polars_dtype_to_data_buffer_dtype(dtype: DataType) -> PolarsDataType:
+def polars_dtype_to_data_buffer_dtype(dtype: PolarsDataType) -> PolarsDataType:
     """Get the data type of the data buffer."""
     if dtype.is_integer() or dtype.is_float() or dtype == Boolean:
         return dtype
