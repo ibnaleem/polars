@@ -46,12 +46,17 @@ def from_dataframe(df: SupportsInterchange, *, allow_copy: bool = True) -> DataF
 
 
 def _from_dataframe(df: InterchangeDataFrame, *, allow_copy: bool = True) -> DataFrame:
-    chunks = [
-        _protocol_df_chunk_to_polars(chunk, allow_copy=allow_copy)
-        for chunk in df.get_chunks()
-    ]
-    # If copy is allowed, rechunk as it will speed up subsequent computation
-    return F.concat(chunks, rechunk=allow_copy)
+    chunks = []
+    for chunk in df.get_chunks():
+        c = _protocol_df_chunk_to_polars(chunk, allow_copy=allow_copy)
+        chunks.append(c)
+
+    # Handle implementations that yield no chunks for an empty dataframe
+    if not chunks:
+        c = _protocol_df_chunk_to_polars(df, allow_copy=allow_copy)
+        chunks.append(c)
+
+    return F.concat(chunks, rechunk=False)
 
 
 def _protocol_df_chunk_to_polars(

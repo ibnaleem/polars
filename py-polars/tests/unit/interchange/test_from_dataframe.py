@@ -110,7 +110,6 @@ def test_from_dataframe_invalid_type() -> None:
         pl.from_dataframe(df)  # type: ignore[arg-type]
 
 
-@pytest.mark.skip("TODO")
 def test_from_dataframe_empty_arrow_interchange_object() -> None:
     df = pl.Series("a", dtype=pl.Int8).to_frame()
     df_pa = df.to_arrow()
