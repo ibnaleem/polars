@@ -48,7 +48,15 @@ def test_from_dataframe_categorical_zero_copy_fails() -> None:
     df = pl.DataFrame({"a": ["foo", "bar"]}, schema={"a": pl.Categorical})
     df_pa = df.to_arrow()
 
-    with pytest.raises(TypeError):
+    result = pl.from_dataframe(df_pa)
+    expected = pl.DataFrame(
+        {"a": ["foo", "bar"]}, schema={"a": pl.Enum(["foo", "bar"])}
+    )
+    assert_frame_equal(result, expected)
+
+    with pytest.raises(
+        CopyNotAllowedError, match="categorical mapping must be constructed"
+    ):
         pl.from_dataframe(df_pa, allow_copy=False)
 
 
@@ -78,12 +86,12 @@ def test_from_dataframe_pyarrow_table_zero_copy() -> None:
 def test_from_dataframe_pyarrow_recordbatch_zero_copy() -> None:
     a = pa.array([1, 2])
     b = pa.array([3.0, 4.0])
-    c = pa.array(["foo", "bar"])
+    c = pa.array(["foo", "bar"], type=pa.large_string())
 
     batch = pa.record_batch([a, b, c], names=["a", "b", "c"])
     result = pl.from_dataframe(batch, allow_copy=False)
-    expected = pl.DataFrame({"a": [1, 2], "b": [3.0, 4.0], "c": ["foo", "bar"]})
 
+    expected = pl.DataFrame({"a": [1, 2], "b": [3.0, 4.0], "c": ["foo", "bar"]})
     assert_frame_equal(result, expected)
 
 

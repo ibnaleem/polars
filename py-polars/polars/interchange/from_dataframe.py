@@ -43,7 +43,10 @@ def from_dataframe(df: SupportsInterchange, *, allow_copy: bool = True) -> DataF
             f"`df` of type {type(df).__name__!r} does not support the dataframe interchange protocol"
         )
 
-    return _from_dataframe(df.__dataframe__(allow_copy=allow_copy))  # type: ignore[arg-type]
+    return _from_dataframe(
+        df.__dataframe__(allow_copy=allow_copy),  # type: ignore[arg-type]
+        allow_copy=allow_copy,
+    )
 
 
 def _from_dataframe(df: InterchangeDataFrame, *, allow_copy: bool = True) -> DataFrame:
@@ -183,7 +186,7 @@ def _construct_offsets_buffer(
     if polars_dtype != Int64:
         if not allow_copy:
             raise CopyNotAllowedError(
-                f"offset buffer must be cast from {polars_dtype} to Int64"
+                f"offsets buffer must be cast from {polars_dtype} to Int64"
             )
         s = s.cast(Int64)
 
