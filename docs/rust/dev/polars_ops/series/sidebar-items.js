@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["all_horizontal","any_horizontal","clip","clip_max","clip_min","coalesce_series","convert_to_unsigned_index","is_positive_idx_uncertain","max_horizontal","min_horizontal","sum_horizontal"],"trait":["ArgAgg","SeriesMethods","SeriesSealed"]};
