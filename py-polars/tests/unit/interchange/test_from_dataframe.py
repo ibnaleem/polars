@@ -42,8 +42,7 @@ def test_from_dataframe_polars_interchange_fast_path() -> None:
     assert_frame_equal(result, df)
 
 
-@pytest.mark.skip("TODO")
-def test_from_dataframe_categorical_zero_copy() -> None:
+def test_from_dataframe_categorical_zero_copy_fails() -> None:
     df = pl.DataFrame({"a": ["foo", "bar"]}, schema={"a": pl.Categorical})
     df_pa = df.to_arrow()
 
@@ -51,12 +50,11 @@ def test_from_dataframe_categorical_zero_copy() -> None:
         pl.from_dataframe(df_pa, allow_copy=False)
 
 
-def test_from_dataframe_pandas() -> None:
+def test_from_dataframe_pandas_zero_copy() -> None:
     data = {"a": [1, 2], "b": [3.0, 4.0], "c": ["foo", "bar"]}
 
-    # Pandas dataframe
     df = pd.DataFrame(data)
-    result = pl.from_dataframe(df)
+    result = pl.from_dataframe(df, allow_copy=False)
     expected = pl.DataFrame(data)
     assert_frame_equal(result, expected)
 
@@ -87,29 +85,6 @@ def test_from_dataframe_pyarrow_recordbatch_zero_copy() -> None:
     assert_frame_equal(result, expected)
 
 
-@pytest.mark.skip("TODO")
-def test_from_dataframe_allow_copy() -> None:
-    # Zero copy only allowed when input is already a Polars dataframe
-    df = pl.DataFrame({"a": [1, 2]})
-    result = pl.from_dataframe(df, allow_copy=True)
-    assert_frame_equal(result, df)
-
-    df1_pandas = pd.DataFrame({"a": [1, 2]})
-    result_from_pandas = pl.from_dataframe(df1_pandas, allow_copy=False)
-    assert_frame_equal(result_from_pandas, df)
-
-    # Zero copy cannot be guaranteed for other inputs at this time
-    df2_pandas = pd.DataFrame({"a": ["A", "B"]})
-    with pytest.raises(RuntimeError):
-        pl.from_dataframe(df2_pandas, allow_copy=False)
-
-
-def test_from_dataframe_invalid_type() -> None:
-    df = [[1, 2], [3, 4]]
-    with pytest.raises(TypeError):
-        pl.from_dataframe(df)  # type: ignore[arg-type]
-
-
 def test_from_dataframe_empty_arrow_interchange_object() -> None:
     df = pl.Series("a", dtype=pl.Int8).to_frame()
     df_pa = df.to_arrow()
@@ -118,6 +93,18 @@ def test_from_dataframe_empty_arrow_interchange_object() -> None:
     result = pl.from_dataframe(dfi)
 
     assert_frame_equal(result, df)
+
+
+def test_from_dataframe_allow_copy() -> None:
+    df = pl.DataFrame({"a": [1, 2]})
+    result = pl.from_dataframe(df, allow_copy=True)
+    assert_frame_equal(result, df)
+
+
+def test_from_dataframe_invalid_type() -> None:
+    df = [[1, 2], [3, 4]]
+    with pytest.raises(TypeError):
+        pl.from_dataframe(df)  # type: ignore[arg-type]
 
 
 def test_construct_data_buffer() -> None:
