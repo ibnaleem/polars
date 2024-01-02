@@ -11,11 +11,13 @@ import polars.interchange.from_dataframe
 from polars.interchange.buffer import PolarsBuffer
 from polars.interchange.column import PolarsColumn
 from polars.interchange.from_dataframe import (
+    _categorical_column_to_series,
     _construct_data_buffer,
     _construct_offsets_buffer,
     _construct_validity_buffer,
     _construct_validity_buffer_from_bitmask,
     _construct_validity_buffer_from_bytemask,
+    _string_column_to_series,
 )
 from polars.interchange.protocol import (
     ColumnNullType,
@@ -44,7 +46,7 @@ def test_from_dataframe_polars_interchange_fast_path() -> None:
     assert_frame_equal(result, df)
 
 
-def test_from_dataframe_categorical_zero_copy_fails() -> None:
+def test_from_dataframe_categorical() -> None:
     df = pl.DataFrame({"a": ["foo", "bar"]}, schema={"a": pl.Categorical})
     df_pa = df.to_arrow()
 
@@ -74,9 +76,17 @@ def test_from_dataframe_pyarrow_table_zero_copy() -> None:
         {
             "a": [1, 2],
             "b": [3.0, 4.0],
-            "c": ["foo", "bar"],
+            "c": ["foo", None],
         }
     )
+    df_pa = df.to_arrow()
+
+    result = pl.from_dataframe(df_pa, allow_copy=False)
+    assert_frame_equal(result, df)
+
+
+def test_from_dataframe_pyarrow_empty_table() -> None:
+    df = pl.Series("a", dtype=pl.Int8).to_frame()
     df_pa = df.to_arrow()
 
     result = pl.from_dataframe(df_pa, allow_copy=False)
@@ -95,26 +105,70 @@ def test_from_dataframe_pyarrow_recordbatch_zero_copy() -> None:
     assert_frame_equal(result, expected)
 
 
-def test_from_dataframe_empty_arrow_interchange_object() -> None:
-    df = pl.Series("a", dtype=pl.Int8).to_frame()
-    df_pa = df.to_arrow()
-    dfi = df_pa.__dataframe__()
-
-    result = pl.from_dataframe(dfi)
-
-    assert_frame_equal(result, df)
-
-
-def test_from_dataframe_allow_copy() -> None:
-    df = pl.DataFrame({"a": [1, 2]})
-    result = pl.from_dataframe(df, allow_copy=True)
-    assert_frame_equal(result, df)
-
-
 def test_from_dataframe_invalid_type() -> None:
     df = [[1, 2], [3, 4]]
     with pytest.raises(TypeError):
         pl.from_dataframe(df)  # type: ignore[arg-type]
+
+
+def test_from_dataframe_categorical_offsets_copy() -> None:
+    values = ["a", "b", None, "a"]
+
+    dtype = pa.dictionary(pa.int32(), pa.utf8())
+    arr = pa.array(values, dtype)
+    df_pa = pa.Table.from_arrays([arr], names=["a"])
+
+    result = pl.from_dataframe(df_pa)
+    expected = pl.Series("a", values, dtype=pl.Enum(["a", "b"])).to_frame()
+    assert_frame_equal(result, expected)
+
+    with pytest.raises(
+        CopyNotAllowedError, match="categorical mapping must be constructed"
+    ):
+        result = pl.from_dataframe(df_pa, allow_copy=False)
+
+
+def test_from_dataframe_categorical_non_string_keys() -> None:
+    values = [1, 2, None, 1]
+
+    dtype = pa.dictionary(pa.uint32(), pa.int32())
+    arr = pa.array(values, dtype)
+    df_pa = pa.Table.from_arrays([arr], names=["a"])
+
+    with pytest.raises(
+        NotImplementedError, match="non-string categories are not supported"
+    ):
+        pl.from_dataframe(df_pa)
+
+
+class PatchableColumn(PolarsColumn):
+    """Helper class that allows patching certain PolarsColumn properties."""
+
+    describe_null: tuple[ColumnNullType, Any] = (ColumnNullType.USE_BITMASK, 0)
+    describe_categorical: dict[str, Any] = {}  # type: ignore[assignment]  # noqa: RUF012
+    null_count = 0
+
+
+def test_string_column_to_series_no_offsets() -> None:
+    s = pl.Series([97, 98, 99])
+    col = PolarsColumn(s)
+    with pytest.raises(
+        RuntimeError,
+        match="cannot create String column without an offsets buffer",
+    ):
+        _string_column_to_series(col)
+
+
+def test_categorical_column_to_series_non_dictionary() -> None:
+    s = pl.Series(["a", "b", None, "a"], dtype=pl.Categorical)
+
+    col = PatchableColumn(s)
+    col.describe_categorical = {"is_dictionary": False}
+
+    with pytest.raises(
+        NotImplementedError, match="non-dictionary categoricals are not yet supported"
+    ):
+        _categorical_column_to_series(col)
 
 
 def test_construct_data_buffer() -> None:
@@ -177,13 +231,6 @@ def bitmask() -> PolarsBuffer:
 def bytemask() -> PolarsBuffer:
     data = pl.Series([0, 1, 1, 0], dtype=pl.UInt8)
     return PolarsBuffer(data)
-
-
-class PatchableColumn(PolarsColumn):
-    """Helper class that allows patching certain PolarsColumn properties."""
-
-    describe_null: tuple[ColumnNullType, Any] = (ColumnNullType.USE_BITMASK, 0)
-    null_count = 0
 
 
 def test_construct_validity_buffer_non_nullable() -> None:
@@ -263,8 +310,7 @@ def test_construct_validity_buffer_use_sentinel() -> None:
     s = pl.Series(["a", "bc", "NULL"])
 
     col = PatchableColumn(s)
-    null = (ColumnNullType.USE_SENTINEL, "NULL")
-    col.describe_null = null
+    col.describe_null = (ColumnNullType.USE_SENTINEL, "NULL")
     col.null_count = 1
 
     result = _construct_validity_buffer(None, col, s)
@@ -273,6 +319,17 @@ def test_construct_validity_buffer_use_sentinel() -> None:
 
     with pytest.raises(CopyNotAllowedError, match="bitmask must be constructed"):
         _construct_validity_buffer(None, col, s, allow_copy=False)
+
+
+def test_construct_validity_buffer_unsupported() -> None:
+    s = pl.Series([1, 2, 3])
+
+    col = PatchableColumn(s)
+    col.describe_null = (100, None)  # type: ignore[assignment]
+    col.null_count = 1
+
+    with pytest.raises(NotImplementedError, match="unsupported null type: 100"):
+        _construct_validity_buffer(None, col, s)
 
 
 @pytest.mark.parametrize("allow_copy", [True, False])

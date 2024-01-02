@@ -74,7 +74,8 @@ class PolarsColumn(Column):
 
         """
         if self.dtype[0] != DtypeKind.CATEGORICAL:
-            raise TypeError("`describe_categorical` only works on categorical columns")
+            msg = "`describe_categorical` only works on categorical columns"
+            raise TypeError(msg)
 
         categories = self._col.cat.get_categories()
         return {

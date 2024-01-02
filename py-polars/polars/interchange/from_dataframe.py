@@ -6,7 +6,7 @@ import polars._reexport as pl
 import polars.functions as F
 from polars.datatypes import Boolean, Enum, Int64, String, UInt8, UInt32
 from polars.interchange.dataframe import PolarsDataFrame
-from polars.interchange.protocol import ColumnNullType, CopyNotAllowedError
+from polars.interchange.protocol import ColumnNullType, CopyNotAllowedError, DtypeKind
 from polars.interchange.utils import (
     dtype_to_polars_dtype,
     get_buffer_length_in_elements,
@@ -70,9 +70,9 @@ def _protocol_df_chunk_to_polars(
     for column, name in zip(df.get_columns(), df.column_names()):
         dtype = dtype_to_polars_dtype(column.dtype)
         if dtype == String:
-            s = _string_to_series(column, allow_copy=allow_copy)
+            s = _string_column_to_series(column, allow_copy=allow_copy)
         elif dtype == Enum:
-            s = _categorical_to_series(column, allow_copy=allow_copy)
+            s = _categorical_column_to_series(column, allow_copy=allow_copy)
         else:
             s = _column_to_series(column, dtype, allow_copy=allow_copy)
         columns.append(s.alias(name))
@@ -93,19 +93,20 @@ def _column_to_series(
     return pl.Series._from_buffers(dtype, data=data_buffer, validity=validity_buffer)
 
 
-def _string_to_series(column: Column, *, allow_copy: bool = True) -> Series:
+def _string_column_to_series(column: Column, *, allow_copy: bool = True) -> Series:
     buffers = column.get_buffers()
     offset = column.offset
 
-    buffer, dtype = buffers["data"]
-    data_buffer = _construct_data_buffer(buffer, dtype, buffer.bufsize, offset)
-
     offsets_buffer_info = buffers["offsets"]
     if offsets_buffer_info is None:
-        raise RuntimeError("cannot create a String column without an offsets buffer")
+        msg = "cannot create String column without an offsets buffer"
+        raise RuntimeError(msg)
     offsets_buffer: Series = _construct_offsets_buffer(
         *offsets_buffer_info, offset, allow_copy=allow_copy
     )
+
+    buffer, dtype = buffers["data"]
+    data_buffer = _construct_data_buffer(buffer, dtype, buffer.bufsize, offset)
 
     # Construct a Series without a validity buffer first to allow constructing
     # the validity buffer from a sentinel value
@@ -124,13 +125,15 @@ def _string_to_series(column: Column, *, allow_copy: bool = True) -> Series:
     return data
 
 
-def _categorical_to_series(column: Column, *, allow_copy: bool = True) -> Series:
+def _categorical_column_to_series(column: Column, *, allow_copy: bool = True) -> Series:
     if not allow_copy:
-        raise CopyNotAllowedError("categorical mapping must be constructed")
+        msg = "categorical mapping must be constructed"
+        raise CopyNotAllowedError(msg)
 
     categorical = column.describe_categorical
     if not categorical["is_dictionary"]:
-        raise NotImplementedError("non-dictionary categoricals are not yet supported")
+        msg = "non-dictionary categoricals are not yet supported"
+        raise NotImplementedError(msg)
 
     buffers = column.get_buffers()
     offset = column.offset
@@ -139,17 +142,20 @@ def _categorical_to_series(column: Column, *, allow_copy: bool = True) -> Series
 
     # Polars only supports UInt32 categoricals
     if (data_dtype := data_buffer.dtype) != UInt32:
-        if not allow_copy:
-            raise CopyNotAllowedError(
-                f"data buffer must be cast from {data_dtype} to UInt32"
-            )
+        if not allow_copy:  # pragma: no cover
+            msg = f"data buffer must be cast from {data_dtype} to UInt32"
+            raise CopyNotAllowedError(msg)
         data_buffer = data_buffer.cast(UInt32)
 
     validity_buffer = _construct_validity_buffer(
         buffers["validity"], column, data_buffer, offset, allow_copy=allow_copy
     )
 
-    categories = _string_to_series(categorical["categories"], allow_copy=allow_copy)
+    categories_col = categorical["categories"]
+    if categories_col.dtype[0] != DtypeKind.STRING:
+        msg = "non-string categories are not supported"
+        raise NotImplementedError(msg)
+    categories = _string_column_to_series(categories_col, allow_copy=allow_copy)
     dtype = Enum(list(categories))
 
     return pl.Series._from_buffers(dtype, data=data_buffer, validity=validity_buffer)
@@ -185,9 +191,8 @@ def _construct_offsets_buffer(
     # Polars only supports Int64 offsets
     if polars_dtype != Int64:
         if not allow_copy:
-            raise CopyNotAllowedError(
-                f"offsets buffer must be cast from {polars_dtype} to Int64"
-            )
+            msg = f"offsets buffer must be cast from {polars_dtype} to Int64"
+            raise CopyNotAllowedError(msg)
         s = s.cast(Int64)
 
     return s
@@ -223,16 +228,19 @@ def _construct_validity_buffer(
 
     elif null_type == ColumnNullType.USE_NAN:
         if not allow_copy:
-            raise CopyNotAllowedError("bitmask must be constructed")
+            msg = "bitmask must be constructed"
+            raise CopyNotAllowedError(msg)
         return data.is_not_nan()
 
     elif null_type == ColumnNullType.USE_SENTINEL:
         if not allow_copy:
-            raise CopyNotAllowedError("bitmask must be constructed")
+            msg = "bitmask must be constructed"
+            raise CopyNotAllowedError(msg)
         return data != null_value
 
     else:
-        raise NotImplementedError(f"unsupported null type: {null_type!r}")
+        msg = f"unsupported null type: {null_type!r}"
+        raise NotImplementedError(msg)
 
 
 def _construct_validity_buffer_from_bitmask(

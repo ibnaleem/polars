@@ -9,6 +9,7 @@ from polars.interchange.protocol import DtypeKind, Endianness
 from polars.interchange.utils import (
     dtype_to_polars_dtype,
     get_buffer_length_in_elements,
+    polars_dtype_to_data_buffer_dtype,
     polars_dtype_to_dtype,
 )
 
@@ -85,6 +86,12 @@ def test_polars_dtype_to_dtype_unsupported_type() -> None:
 
 
 def test_dtype_to_polars_dtype_unsupported_type() -> None:
+    dtype = (DtypeKind.FLOAT, 16, "e", NE)
+    with pytest.raises(NotImplementedError, match="unsupported data type: 'e'"):
+        dtype_to_polars_dtype(dtype)
+
+
+def test_dtype_to_polars_dtype_unsupported_temporal_type() -> None:
     dtype = (DtypeKind.DATETIME, 64, "tss:", NE)
     with pytest.raises(
         NotImplementedError, match="unsupported temporal data type: 'tss:'"
@@ -110,3 +117,25 @@ def test_get_buffer_length_in_elements_unsupported_dtype() -> None:
         match="cannot get buffer length for buffer with dtype \\(<DtypeKind.BOOL: 20>, 1, 'b', '='\\)",
     ):
         get_buffer_length_in_elements(24, dtype)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "expected"),
+    [
+        (pl.Int8, pl.Int8),
+        (pl.Date, pl.Int32),
+        (pl.Time, pl.Int64),
+        (pl.String, pl.UInt8),
+        (pl.Enum, pl.UInt32),
+    ],
+)
+def test_polars_dtype_to_data_buffer_dtype(
+    dtype: pl.PolarsDataType, expected: pl.PolarsDataType
+) -> None:
+    assert polars_dtype_to_data_buffer_dtype(dtype) == expected
+
+
+def test_polars_dtype_to_data_buffer_dtype_unsupported_dtype() -> None:
+    dtype = pl.List(pl.Int8)
+    with pytest.raises(NotImplementedError):
+        polars_dtype_to_data_buffer_dtype(dtype)
