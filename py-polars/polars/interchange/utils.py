@@ -27,7 +27,7 @@ from polars.interchange.protocol import DtypeKind, Endianness
 
 if TYPE_CHECKING:
     from polars.datatypes import DataTypeClass
-    from polars.interchange.protocol import Buffer, Dtype
+    from polars.interchange.protocol import Dtype
     from polars.type_aliases import PolarsDataType
 
 NE = Endianness.NATIVE
@@ -124,7 +124,7 @@ def dtype_to_polars_dtype(dtype: Dtype) -> PolarsDataType:
 
 def _temporal_dtype_to_polars_dtype(format_str: str) -> PolarsDataType:
     if (match := re.fullmatch(r"ts([mun]):(.*)", format_str)) is not None:
-        time_unit = match.group(1)
+        time_unit = match.group(1) + "s"
         time_zone = match.group(2) or None
         return Datetime(
             time_unit=time_unit,  # type: ignore[arg-type]
@@ -135,10 +135,19 @@ def _temporal_dtype_to_polars_dtype(format_str: str) -> PolarsDataType:
     elif format_str == "ttu":
         return Time
     elif (match := re.fullmatch(r"tD([mun])", format_str)) is not None:
-        time_unit = match.group(1)
+        time_unit = match.group(1) + "s"
         return Duration(time_unit=time_unit)  # type: ignore[arg-type]
 
     raise NotImplementedError(f"unsupported temporal data type: {format_str!r}")
+
+
+def get_buffer_length_in_elements(buffer_size: int, dtype: Dtype) -> int:
+    """Get the length of a buffer in elements."""
+    bits_per_element = dtype[1]
+    bytes_per_element, rest = divmod(bits_per_element, 8)
+    if rest > 0:
+        raise ValueError(f"cannot get buffer length for buffer with dtype {dtype!r}")
+    return buffer_size // bytes_per_element
 
 
 def polars_dtype_to_data_buffer_dtype(dtype: PolarsDataType) -> PolarsDataType:
@@ -153,12 +162,3 @@ def polars_dtype_to_data_buffer_dtype(dtype: PolarsDataType) -> PolarsDataType:
         return UInt32
 
     raise NotImplementedError(f"unsupported data type: {dtype}")
-
-
-def get_buffer_length_in_elements(buffer: Buffer, dtype: Dtype) -> int:
-    """Get the length of a buffer in elements."""
-    bits_per_element = dtype[1]
-    bytes_per_element, rest = divmod(bits_per_element, 8)
-    if rest > 0:
-        raise ValueError(f"cannot get buffer length for buffer with dtype {dtype!r}")
-    return buffer.bufsize // bytes_per_element

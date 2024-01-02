@@ -32,6 +32,7 @@ protocol_dtypes = [
 def test_roundtrip_pyarrow_parametric(df: pl.DataFrame) -> None:
     dfi = df.__dataframe__()
     df_pa = pa.interchange.from_dataframe(dfi)
+
     with pl.StringCache():
         result: pl.DataFrame = pl.from_arrow(df_pa)  # type: ignore[assignment]
     assert_frame_equal(result, df, categorical_as_str=True)

@@ -177,7 +177,7 @@ def _construct_offsets_buffer(
     allow_copy: bool = True,
 ) -> Series:
     polars_dtype = dtype_to_polars_dtype(dtype)
-    length = get_buffer_length_in_elements(buffer, dtype)
+    length = get_buffer_length_in_elements(buffer.bufsize, dtype)
 
     buffer_info = (buffer.ptr, offset, length)
     s = pl.Series._from_buffer(polars_dtype, buffer_info, owner=buffer)
